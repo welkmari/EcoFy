@@ -1,226 +1,321 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { useState } from "react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import {
-  MagnifyingGlass,
-  SquaresFour,
-  Users,
-  CurrencyDollar,
-  Gear,
-  CaretRight,
-  SignOut,
-  ArrowCircleUp,
-  ArrowCircleDown,
-  BellRinging,
-  Wallet,
-  List,
-  CaretLeft,
-  CreditCard,
-  Lightning,
-  Target,
-} from '@phosphor-icons/react';
-import Logo from '@/components/layout/Logo';
+  MagnifyingGlassIcon,
+  SquaresFourIcon,
+  CurrencyDollarIcon,
+  GearSixIcon,
+  CaretRightIcon,
+  SignOutIcon,
+  ArrowCircleUpIcon,
+  ArrowCircleDownIcon,
+  BellRingingIcon,
+  WalletIcon,
+  ListIcon,
+  CaretLeftIcon,
+  CreditCardIcon,
+  LightningIcon,
+  TargetIcon,
+  UsersIcon,
+} from "@phosphor-icons/react";
+import Logo from "@/components/layout/Logo";
+import { cn } from "@/lib/cn";
+
+const NAV_SECTIONS = [
+  {
+    key: "home",
+    label: "Home",
+    icon: SquaresFourIcon,
+    color: "text-purple-500",
+    items: [
+      { href: "/overview", label: "Visão Geral", icon: SquaresFourIcon },
+      { href: "/earnings", label: "Entradas", icon: ArrowCircleUpIcon },
+      { href: "/spents", label: "Saídas", icon: ArrowCircleDownIcon },
+      { href: "/fixed-bills", label: "Contas Fixas", icon: BellRingingIcon },
+      { href: "/bills", label: "Contas", icon: WalletIcon },
+    ],
+  },
+  {
+    key: "planning",
+    label: "Planejamento",
+    icon: CurrencyDollarIcon,
+    color: "text-purple-400",
+    items: [{ href: "/goals", label: "Metas Financeiras", icon: TargetIcon }],
+  },
+] as const;
+
+const NAV_SINGLES = [
+  { href: "/users", label: "Usuário", icon: UsersIcon },
+  { href: "/settings", label: "Configurações", icon: GearSixIcon },
+] as const;
 
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [dashboardOpen, setDashboardOpen] = useState(true);
-  const [featuresOpen, setFeaturesOpen] = useState(false);
-  const [premiumOpen, setPremiumOpen] = useState(false);
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
+    home: true,
+  });
 
-  const handleLogout = () => {
-    router.push('/login');
+  const toggleSection = (key: string) => {
+    if (isCollapsed) return;
+    setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
   return (
-    <div className={`flex flex-col h-screen bg-base text-text-secondary p-6 border-r border-border-default transition-all duration-300 ${isCollapsed ? 'w-24' : 'w-72'}`}>
-
-      <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} mb-12`}>
-        <Logo isCollapsed={isCollapsed} />
+    <div
+      className={cn(
+        "flex flex-col h-screen bg-base text-text-secondary border-r border-border-default transition-all duration-300 shrink-0",
+        isCollapsed ? "w-20" : "w-64",
+      )}
+    >
+      <div className="flex items-center justify-center px-4 h-20 border-b border-border-default shrink-0">
+        {!isCollapsed && (
+          <div className="flex-1">
+            <Logo isCollapsed={false} />
+          </div>
+        )}
+        {isCollapsed && <Logo isCollapsed={true} />}
         {!isCollapsed && (
           <button
             onClick={() => setIsCollapsed(true)}
-            className="p-1.5 hover:bg-surface rounded-lg text-text-muted hover:text-text-primary transition-colors"
+            className="p-2 hover:bg-surface rounded-lg text-text-muted hover:text-text-primary transition-colors shrink-0"
           >
-            <CaretLeft size={20} />
+            <CaretLeftIcon size={20} />
           </button>
         )}
       </div>
 
       {isCollapsed && (
-        <button
-          onClick={() => setIsCollapsed(false)}
-          className="p-1.5 hover:bg-surface rounded-lg text-text-muted hover:text-text-primary transition-colors mx-auto mb-8"
-        >
-          <List size={20} />
-        </button>
+        <div className="flex justify-center px-2 pt-4 shrink-0">
+          <button
+            onClick={() => setIsCollapsed(false)}
+            className="p-2 hover:bg-surface rounded-lg text-text-muted hover:text-text-primary transition-colors"
+          >
+            <ListIcon size={22} />
+          </button>
+        </div>
       )}
 
-      <div className="relative mb-8">
-        <MagnifyingGlass className={`absolute ${isCollapsed ? 'left-1/2 -translate-x-1/2' : 'left-3'} top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted`} />
-        {!isCollapsed && (
+      {!isCollapsed && (
+        <div className="relative px-4 pt-5 pb-2 shrink-0">
+          <MagnifyingGlassIcon className="absolute left-7 top-1/2 translate-y-0.5 w-4 h-4 text-text-muted" />
           <input
             type="text"
             placeholder="Pesquise aqui..."
-            className="w-full bg-surface border border-border-default rounded-md py-2 pl-10 text-sm focus:ring-1 focus:ring-purple-500 outline-none transition-colors"
+            className="w-full bg-surface border border-border-default rounded-lg py-2.5 pl-9 pr-3 text-sm focus:ring-1 focus:ring-purple-500 outline-none transition-colors placeholder:text-text-muted"
           />
-        )}
-      </div>
+        </div>
+      )}
 
-      <nav className="flex-1 space-y-2 overflow-y-auto scrollbar-hide pr-1">
+      <nav className="flex-1 overflow-y-auto scrollbar-hide px-3 py-4 space-y-1">
+        {NAV_SECTIONS.map(({ key, label, icon: Icon, color, items }) => {
+          const isOpen = openSections[key];
+          const sectionActive = items.some((i) => pathname === i.href);
 
-        <div>
-          <button
-            onClick={() => !isCollapsed && setDashboardOpen(!dashboardOpen)}
-            className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} w-full p-2 text-purple-500 font-medium focus:outline-none`}
-          >
-            <div className="flex items-center gap-3">
-              <SquaresFour size={20} />
-              {!isCollapsed && <span>Home</span>}
+          return (
+            <div key={key}>
+              <button
+                onClick={() => toggleSection(key)}
+                className={cn(
+                  "flex items-center w-full rounded-lg transition-colors",
+                  isCollapsed
+                    ? "justify-center p-3"
+                    : "justify-between px-3 py-2.5",
+                  sectionActive || isOpen
+                    ? color
+                    : "text-text-secondary hover:text-text-primary hover:bg-surface/40",
+                )}
+              >
+                <div
+                  className={cn("flex items-center", !isCollapsed && "gap-3")}
+                >
+                  <Icon size={22} />
+                  {!isCollapsed && (
+                    <span className="text-amber-50 font-medium">{label}</span>
+                  )}
+                </div>
+                {!isCollapsed && (
+                  <CaretRightIcon
+                    size={15}
+                    className={cn(
+                      "transition-transform duration-200 text-text-muted shrink-0",
+                      isOpen && "rotate-90",
+                    )}
+                  />
+                )}
+              </button>
+
+              {isOpen && !isCollapsed && (
+                <div className="ml-3 mt-1 pl-4 border-l border-border-default space-y-0.5">
+                  {items.map(({ href, label: itemLabel, icon: ItemIcon }) => {
+                    const active = pathname === href;
+                    return (
+                      <Link
+                        key={href}
+                        href={href}
+                        className={cn(
+                          "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
+                          active
+                            ? "bg-surface text-text-primary font-medium border-l-2 border-purple-500 -ml-[1px] rounded-l-none"
+                            : "text-text-muted hover:text-text-primary hover:bg-surface/30",
+                        )}
+                      >
+                        <ItemIcon
+                          size={17}
+                          className={active ? "text-purple-400" : ""}
+                        />
+                        {itemLabel}
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
             </div>
-            {!isCollapsed && (
-              <CaretRight size={16} className={`transition-transform duration-200 ${dashboardOpen ? 'rotate-90' : ''}`} />
-            )}
-          </button>
+          );
+        })}
 
-          {dashboardOpen && !isCollapsed && (
-            <div className="ml-4 mt-2 space-y-1 border-l border-border-default">
-              <p className="pl-6 py-2 text-xs uppercase tracking-widest text-text-muted">Visualização Geral</p>
-              <SubNavItem href="/bills" label="Contas" active={pathname === '/bills'} icon={<Wallet size={14} />} />
-              <SubNavItem href="/spents" label="Gastos" active={pathname === '/spents'} icon={<ArrowCircleDown size={14} />} />
-              <SubNavItem href="/earnings" label="Ganhos" active={pathname === '/earnings'} icon={<ArrowCircleUp size={14} />} />
-              <SubNavItem href="/fixed-bills" label="Contas Fixas" active={pathname === '/fixed-bills'} icon={<BellRinging size={14} />} />
-            </div>
-          )}
+        <div className="pt-1 space-y-0.5">
+          {NAV_SINGLES.map(({ href, label, icon: Icon }) => {
+            const active = pathname === href;
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={cn(
+                  "flex items-center w-full rounded-lg transition-colors",
+                  isCollapsed ? "justify-center p-3" : "gap-3 px-3 py-2.5",
+                  active
+                    ? "text-purple-400 bg-surface/30 font-medium"
+                    : "text-text-secondary hover:text-text-primary hover:bg-surface/20",
+                )}
+              >
+                <Icon size={22} />
+                {!isCollapsed && <span className="text-amber-50">{label}</span>}
+              </Link>
+            );
+          })}
         </div>
 
-        <div>
-          <button
-            onClick={() => !isCollapsed && setFeaturesOpen(!featuresOpen)}
-            className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} w-full p-2 transition-colors group focus:outline-none ${featuresOpen || pathname.includes('goals') ? 'text-purple-400' : 'hover:text-purple-400'}`}
-          >
-            <div className="flex items-center gap-3">
-              <CurrencyDollar size={20} />
-              {!isCollapsed && <span>Planejamento</span>}
-            </div>
-            {!isCollapsed && (
-              <CaretRight size={16} className={`transition-transform duration-200 ${featuresOpen ? 'rotate-90' : ''}`} />
-            )}
-          </button>
-
-          {featuresOpen && !isCollapsed && (
-            <div className="ml-4 mt-2 space-y-1 border-l border-border-default">
-              <SubNavItem href="/goals" label="Metas Financeiras" active={pathname === '/goals'} icon={<Target size={14} />} />
-            </div>
-          )}
+        <div className="pt-3">
+          <PremiumSection pathname={pathname} isCollapsed={isCollapsed} />
         </div>
-
-        <NavItem icon={<Users size={20} />} label="Usuário" active={pathname === '/users'} href="/users" isCollapsed={isCollapsed} />
-        <NavItem icon={<Gear size={20} />} label="Settings" active={pathname === '/settings'} href="/settings" isCollapsed={isCollapsed} />
-
-        <div>
-          <button
-            onClick={() => !isCollapsed && setPremiumOpen(!premiumOpen)}
-            className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} w-full p-2 transition-colors group focus:outline-none ${premiumOpen || pathname.includes('premium') ? 'text-yellow-500' : 'hover:text-yellow-500'}`}
-          >
-            <div className="flex items-center gap-3">
-              <Lightning size={20} className={premiumOpen || pathname.includes('premium') ? 'text-yellow-500' : ''} />
-              {!isCollapsed && <span className="font-medium">CoinFy Premium</span>}
-            </div>
-            {!isCollapsed && (
-              <CaretRight size={16} className={`transition-transform duration-200 ${premiumOpen ? 'rotate-90' : ''}`} />
-            )}
-          </button>
-
-          {premiumOpen && !isCollapsed && (
-            <div className="ml-4 mt-2 space-y-1 border-l border-border-default">
-              <SubNavItem href="/premium" label="Ver Planos" active={pathname === '/premium'} icon={<Lightning size={14} />} />
-              <SubNavItem href="/payments" label="Pagamentos" active={pathname === '/payments'} icon={<CreditCard size={14} />} />
-            </div>
-          )}
-        </div>
-
       </nav>
 
-      <div className="mt-auto pt-6 border-t border-border-default shrink-0 space-y-4">
-        {!isCollapsed && (
-          <Link
-            href="/users"
-            className={`flex items-center gap-3 cursor-pointer p-2 rounded-xl transition-all hover:bg-surface group ${pathname === '/users' ? 'bg-surface ring-1 ring-border-active' : ''}`}
-          >
-            <img src="https://github.com/mariaroberta.png" alt="User" className="w-10 h-10 rounded-full border-2 border-border-default" />
-            <div className="flex-1">
-              <p className="text-sm font-semibold text-text-primary">Maria Roberta</p>
-              <p className="text-xs text-text-muted">Junior Developer</p>
+      <div className="shrink-0 border-t border-border-default px-3 py-4 space-y-1">
+        <Link
+          href="/users"
+          className={cn(
+            "flex items-center gap-3 p-2 rounded-xl transition-all hover:bg-surface",
+            isCollapsed && "justify-center",
+            pathname === "/users" && "bg-surface ring-1 ring-border-active",
+          )}
+        >
+          <img
+            src="https://github.com/mariaroberta.png"
+            alt="User"
+            className="w-10 h-10 rounded-full border-2 border-border-default shrink-0"
+          />
+          {!isCollapsed && (
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-text-primary truncate">
+                Maria Roberta
+              </p>
+              <p className="text-xs text-text-muted truncate">
+                Junior Developer
+              </p>
             </div>
-          </Link>
-        )}
-
-        {isCollapsed && (
-          <div className="flex justify-center">
-            <img src="https://github.com/mariaroberta.png" alt="User" className="w-10 h-10 rounded-full border-2 border-border-default" />
-          </div>
-        )}
+          )}
+        </Link>
 
         <button
-          onClick={handleLogout}
-          className={`flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} w-full p-2 text-sm font-medium text-text-muted hover:text-red-400 hover:bg-red-hover rounded-lg transition-all`}
+          onClick={() => router.push("/login")}
+          className={cn(
+            "flex items-center w-full rounded-lg transition-all text-text-muted hover:text-red-400 hover:bg-red-500/10",
+            isCollapsed ? "justify-center p-3" : "gap-3 px-3 py-2.5",
+          )}
         >
-          <SignOut size={20} />
-          {!isCollapsed && <span>Sair da conta</span>}
+          <SignOutIcon size={22} />
+          {!isCollapsed && <span className="text-amber-50">Sair da conta</span>}
         </button>
       </div>
     </div>
   );
 }
 
-type SubNavItemProps = {
-  href: string;
-  label: string;
-  active: boolean;
-  icon: React.ReactNode;
-};
-
-function SubNavItem({ href, label, active, icon }: SubNavItemProps) {
-  return (
-    <Link
-      href={href}
-      className={`flex items-center gap-3 pl-6 py-2 transition-colors rounded-r-md text-sm ${
-        active ? 'text-text-primary bg-surface border-l-2 border-purple-500 font-medium' : 'hover:text-purple-400 hover:bg-surface/30'
-      }`}
-    >
-      <span className={active ? 'text-purple-400' : 'text-text-muted'}>{icon}</span>
-      {label}
-    </Link>
-  );
-}
-
-type NavItemProps = {
-  icon: React.ReactNode;
-  label: string;
-  active: boolean;
-  href: string;
+function PremiumSection({
+  pathname,
+  isCollapsed,
+}: {
+  pathname: string;
   isCollapsed: boolean;
-};
+}) {
+  const [open, setOpen] = useState(false);
+  const isPremiumPath =
+    pathname.includes("premium") || pathname.includes("payments");
 
-function NavItem({ icon, label, active, href, isCollapsed }: NavItemProps) {
   return (
-    <Link
-      href={href}
-      className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} w-full p-2 transition-colors group rounded-md ${
-        active ? 'text-purple-400 font-medium bg-surface/30' : 'hover:text-purple-400 hover:bg-surface/20'
-      }`}
-    >
-      <div className="flex items-center gap-3">
-        {icon}
-        {!isCollapsed && <span>{label}</span>}
-      </div>
-      {!isCollapsed && (
-        <CaretRight size={16} className={`transition-opacity ${active ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} />
+    <div
+      className={cn(
+        "rounded-xl border border-yellow-500/20 bg-yellow-500/5 p-2",
+        isCollapsed && "flex justify-center",
       )}
-    </Link>
+    >
+      <button
+        onClick={() => !isCollapsed && setOpen((v) => !v)}
+        className={cn(
+          "flex items-center w-full rounded-lg transition-colors",
+          isCollapsed ? "justify-center p-3" : "justify-between px-1 py-2",
+          isPremiumPath || open
+            ? "text-yellow-400"
+            : "text-yellow-500/70 hover:text-yellow-400",
+        )}
+      >
+        <div className={cn("flex items-center", !isCollapsed && "gap-3")}>
+          <LightningIcon size={22} weight="fill" />
+          {!isCollapsed && (
+            <span className="text-amber-50 font-semibold">EcoPlus</span>
+          )}
+        </div>
+        {!isCollapsed && (
+          <CaretRightIcon
+            size={15}
+            className={cn(
+              "transition-transform duration-200 shrink-0",
+              open && "rotate-90",
+            )}
+          />
+        )}
+      </button>
+
+      {open && !isCollapsed && (
+        <div className="mt-1 space-y-0.5">
+          {[
+            { href: "/premium", label: "Ver Planos", icon: LightningIcon },
+            { href: "/payments", label: "Pagamentos", icon: CreditCardIcon },
+          ].map(({ href, label, icon: Icon }) => {
+            const active = pathname === href;
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={cn(
+                  "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
+                  active
+                    ? "text-yellow-300 bg-yellow-500/10 font-medium"
+                    : "text-yellow-500/60 hover:text-yellow-400 hover:bg-yellow-500/10",
+                )}
+              >
+                <Icon size={17} />
+                {label}
+              </Link>
+            );
+          })}
+        </div>
+      )}
+    </div>
   );
 }

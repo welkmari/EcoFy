@@ -1,9 +1,12 @@
 import MetricCard from "./MetricCard";
+import MonthlyFlowChart from "./MonthlyFlowChart";
+import SpendingDonutChart from "./SpendingDonutChart";
+import BudgetHealthBar from "./BudgetHealthBar";
 
 export default function OverViewPage() {
   return (
-    <div className="p-8">
-      <div className="flex gap-4 w-full">
+    <div className="flex min-h-full flex-col gap-3 p-5">
+      <div className="grid grid-cols-1 gap-3 shrink-0 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard
           variant="ganhos"
           value="R$ 89.935"
@@ -32,6 +35,19 @@ export default function OverViewPage() {
           percentage="+1.51%"
           isUp={true}
         />
+      </div>
+
+      <div className="grid flex-1 min-h-[320px] grid-cols-1 gap-3 xl:grid-cols-[minmax(0,2fr)_minmax(300px,1fr)]">
+        <div className="min-w-0">
+          <MonthlyFlowChart />
+        </div>
+        <div className="min-w-0">
+          <SpendingDonutChart />
+        </div>
+      </div>
+
+      <div className="shrink-0">
+        <BudgetHealthBar />
       </div>
     </div>
   );

@@ -14,7 +14,7 @@ export default function Header({
   avatarUrl = "https://github.com/shadcn.png",
 }: HeaderProps) {
   return (
-    <header className="flex items-center justify-between w-full px-10 pt-16 pb-8 bg-transparent">
+    <header className="flex items-center justify-between w-full px-10 pt-12 pb-5 bg-base">
       <div className="flex flex-col gap-1">
         <h1 className="text-text-primary font-black text-3xl tracking-tight">
           Bem-Vindo(a), {userName}!
@@ -28,7 +28,7 @@ export default function Header({
           <span className="absolute top-3 right-3 w-2.5 h-2.5 bg-purple-500 rounded-full border-2 border-surface" />
         </button>
 
-        <button className="flex items-center gap-3 pl-3 pr-3 py-2 rounded-2xl bg-surface border border-border-default hover:border-border-active hover:bg-surface transition-all shadow-lg">
+        <button className="flex items-center gap-2.5 pl-3 pr-3 py-2 rounded-2xl bg-surface border border-border-default hover:border-border-active hover:bg-surface transition-all shadow-lg">
           <div className="relative">
             <img
               src={avatarUrl}
@@ -38,11 +38,11 @@ export default function Header({
             <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-surface" />
           </div>
 
-          <div className="hidden lg:block text-left mr-2">
-            <span className="text-text-primary text-sm font-bold block leading-none mb-1">
+          <div className="hidden lg:block text-left mr-1">
+            <span className="text-text-primary text-sm font-bold block leading-tight">
               {userName}
             </span>
-            <span className="text-[10px] text-text-muted uppercase font-black tracking-tighter">
+            <span className="text-[10px] text-text-muted uppercase font-black leading-tight tracking-tighter">
               Premium User
             </span>
           </div>

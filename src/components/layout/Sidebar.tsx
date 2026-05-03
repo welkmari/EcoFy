@@ -160,7 +160,7 @@ export default function Sidebar() {
                         className={cn(
                           "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
                           active
-                            ? "bg-surface text-text-primary font-medium border-l-2 border-purple-500 -ml-[1px] rounded-l-none"
+                            ? "bg-surface text-text-primary font-medium border-l-2 border-purple-500 ml-px rounded-l-none"
                             : "text-text-muted hover:text-text-primary hover:bg-surface/30",
                         )}
                       >

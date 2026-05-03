@@ -32,10 +32,8 @@ const NAV_SECTIONS = [
     color: "text-purple-500",
     items: [
       { href: "/overview", label: "Visão Geral", icon: SquaresFourIcon },
-      { href: "/earnings", label: "Entradas", icon: ArrowCircleUpIcon },
-      { href: "/spents", label: "Saídas", icon: ArrowCircleDownIcon },
-      { href: "/fixed-bills", label: "Contas Fixas", icon: BellRingingIcon },
-      { href: "/bills", label: "Contas", icon: WalletIcon },
+      { href: "/transactions", label: "Transações", icon: WalletIcon },
+      { href: "/recurring", label: "Contas Fixas", icon: BellRingingIcon },
     ],
   },
   {

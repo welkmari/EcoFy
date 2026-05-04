@@ -1,35 +1,10 @@
 'use client';
 
-import {
-  Target,
-  DeviceMobile,
-  Island,
-  Car,
-  House,
-  Airplane,
-  GameController,
-  GraduationCap,
-  Heart,
-  Briefcase,
-} from '@phosphor-icons/react';
-import { Icon } from '@phosphor-icons/react';
-
-const ICONS: { label: string; icon: Icon }[] = [
-  { label: 'Meta', icon: Target },
-  { label: 'Celular', icon: DeviceMobile },
-  { label: 'Viagem', icon: Island },
-  { label: 'Carro', icon: Car },
-  { label: 'Casa', icon: House },
-  { label: 'Avião', icon: Airplane },
-  { label: 'Games', icon: GameController },
-  { label: 'Educação', icon: GraduationCap },
-  { label: 'Saúde', icon: Heart },
-  { label: 'Negócio', icon: Briefcase },
-];
+import { COFRINHO_ICONS, type CofrinhoIconKey } from '../icons';
 
 type Props = {
-  selected: Icon;
-  onChange: (icon: Icon) => void;
+  selected: CofrinhoIconKey;
+  onChange: (icon: CofrinhoIconKey) => void;
 };
 
 export default function CofrinhoIconPicker({ selected, onChange }: Props) {
@@ -37,13 +12,13 @@ export default function CofrinhoIconPicker({ selected, onChange }: Props) {
     <div>
       <p className="text-xs text-text-muted uppercase tracking-widest mb-3">Ícone</p>
       <div className="grid grid-cols-5 gap-2">
-        {ICONS.map(({ label, icon: Icon }) => {
-          const isSelected = selected === Icon;
+        {COFRINHO_ICONS.map(({ key, label, icon: Icon }) => {
+          const isSelected = selected === key;
           return (
             <button
-              key={label}
+              key={key}
               type="button"
-              onClick={() => onChange(Icon)}
+              onClick={() => onChange(key)}
               className={`flex flex-col items-center gap-1 p-3 rounded-xl border transition-all ${
                 isSelected
                   ? 'border-border-active bg-purple-500/10 text-purple-400'

@@ -2,9 +2,9 @@
 
 import { useState, useMemo } from "react";
 import { ArrowsDownUpIcon, FunnelIcon, PlusIcon } from "@phosphor-icons/react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/cn";
 import type { FilterType, Transaction } from "./types";
-import { MOCK_TRANSACTIONS } from "./data";
 import SummaryCards from "./components/SummaryCards";
 import TransactionsTable from "./components/TransactionsTable";
 import TransactionModal from "./components/TransactionsModal";
@@ -28,12 +28,55 @@ const INITIAL_CATEGORIES = [
   "Outros",
 ];
 
+async function fetchTransactions() {
+  const response = await fetch("/api/transactions");
+  if (!response.ok) throw new Error("Falha ao carregar transações");
+  return (await response.json()) as Transaction[];
+}
+
+async function createTransaction(transaction: Omit<Transaction, "id">) {
+  const response = await fetch("/api/transactions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(transaction),
+  });
+  if (!response.ok) throw new Error("Falha ao salvar transação");
+  return (await response.json()) as Transaction;
+}
+
+async function deleteTransaction(id: string) {
+  const response = await fetch(`/api/transactions/${id}`, {
+    method: "DELETE",
+  });
+  if (!response.ok) throw new Error("Falha ao remover transação");
+}
+
 export default function TransactionsPage() {
   const [filter, setFilter] = useState<FilterType>("todos");
-  const [transactions, setTransactions] =
-    useState<Transaction[]>(MOCK_TRANSACTIONS);
   const [categories, setCategories] = useState<string[]>(INITIAL_CATEGORIES);
   const [modalOpen, setModalOpen] = useState(false);
+  const queryClient = useQueryClient();
+
+  const { data: transactions = [], isLoading, isError } = useQuery({
+    queryKey: ["transactions"],
+    queryFn: fetchTransactions,
+  });
+
+  const createMutation = useMutation({
+    mutationFn: createTransaction,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["overview"] });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteTransaction,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["overview"] });
+    },
+  });
 
   const filtered = useMemo(
     () =>
@@ -43,9 +86,7 @@ export default function TransactionsPage() {
     [filter, transactions],
   );
 
-  const handleSave = (t: Omit<Transaction, "id">) => {
-    setTransactions((prev) => [{ ...t, id: crypto.randomUUID() }, ...prev]);
-  };
+  const handleSave = (t: Omit<Transaction, "id">) => createMutation.mutate(t);
 
   const handleAddCategory = (c: string) => {
     setCategories((prev) => [...prev, c]);
@@ -106,9 +147,18 @@ export default function TransactionsPage() {
 
       <TransactionsTable
         transactions={filtered}
-        onDelete={() => { }}
+        onDelete={(id) => deleteMutation.mutate(id)}
         onEdit={() => { }}
       />
+
+      {isLoading && (
+        <p className="text-text-muted text-sm">Carregando transações...</p>
+      )}
+      {isError && (
+        <p className="text-red-400 text-sm">
+          Não consegui carregar suas transações agora.
+        </p>
+      )}
 
       <TransactionModal
         open={modalOpen}

@@ -2,8 +2,8 @@
 
 import { useState, useCallback } from "react";
 import { RepeatIcon, PlusIcon } from "@phosphor-icons/react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/cn";
-import { MOCK_BILLS, MOCK_INSTALLMENTS } from "../data";
 import type { BillStatus, FixedBill, Installment } from "../types";
 import SummaryBar from "./SummaryBar";
 import BillCard from "./BillCard";
@@ -21,15 +21,117 @@ const BILL_FILTERS: { value: BillFilter; label: string }[] = [
   { value: "overdue", label: "Overdue" },
 ];
 
+type RecurringData = {
+  bills: FixedBill[];
+  installments: Installment[];
+};
+
+async function fetchRecurring() {
+  const response = await fetch("/api/recurring");
+  if (!response.ok) throw new Error("Falha ao carregar recorrentes");
+  return (await response.json()) as RecurringData;
+}
+
+async function createBill(bill: Omit<FixedBill, "id" | "status">) {
+  const response = await fetch("/api/recurring/bills", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(bill),
+  });
+  if (!response.ok) throw new Error("Falha ao salvar conta fixa");
+  return (await response.json()) as FixedBill;
+}
+
+async function updateBillStatus({
+  id,
+  status,
+}: {
+  id: string;
+  status: BillStatus;
+}) {
+  const response = await fetch(`/api/recurring/bills/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ status }),
+  });
+  if (!response.ok) throw new Error("Falha ao atualizar conta fixa");
+  return (await response.json()) as FixedBill;
+}
+
+async function createInstallment(
+  installment: Omit<
+    Installment,
+    "id" | "paidAmount" | "paidInstallments" | "startDate"
+  >,
+) {
+  const response = await fetch("/api/recurring/installments", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(installment),
+  });
+  if (!response.ok) throw new Error("Falha ao salvar parcelamento");
+  return (await response.json()) as Installment;
+}
+
+async function updateInstallmentProgress({
+  id,
+  paidInstallments,
+}: {
+  id: string;
+  paidInstallments: number;
+}) {
+  const response = await fetch(`/api/recurring/installments/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ paidInstallments }),
+  });
+  if (!response.ok) throw new Error("Falha ao atualizar parcelamento");
+  return (await response.json()) as Installment;
+}
+
 export default function RecurringPage() {
-  const [bills, setBills] = useState<FixedBill[]>(MOCK_BILLS);
-  const [installments, setInstallments] =
-    useState<Installment[]>(MOCK_INSTALLMENTS);
   const [billFilter, setBillFilter] = useState<BillFilter>("all");
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedInstallment, setSelectedInstallment] =
     useState<Installment | null>(null);
   const [toast, setToast] = useState<ToastState>(null);
+  const queryClient = useQueryClient();
+
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["recurring"],
+    queryFn: fetchRecurring,
+  });
+
+  const bills = data?.bills ?? [];
+  const installments = data?.installments ?? [];
+
+  const invalidateRecurring = () => {
+    queryClient.invalidateQueries({ queryKey: ["recurring"] });
+    queryClient.invalidateQueries({ queryKey: ["overview"] });
+  };
+
+  const createBillMutation = useMutation({
+    mutationFn: createBill,
+    onSuccess: invalidateRecurring,
+  });
+
+  const billStatusMutation = useMutation({
+    mutationFn: updateBillStatus,
+    onSuccess: invalidateRecurring,
+  });
+
+  const createInstallmentMutation = useMutation({
+    mutationFn: createInstallment,
+    onSuccess: invalidateRecurring,
+  });
+
+  const installmentMutation = useMutation({
+    mutationFn: updateInstallmentProgress,
+    onSuccess: (updated) => {
+      invalidateRecurring();
+      setSelectedInstallment(updated);
+    },
+  });
 
   const filteredBills =
     billFilter === "all" ? bills : bills.filter((b) => b.status === billFilter);
@@ -38,50 +140,24 @@ export default function RecurringPage() {
     const bill = bills.find((b) => b.id === id);
     if (!bill) return;
     setToast({ billId: id, previousStatus: bill.status });
-    setBills((prev) =>
-      prev.map((b) => (b.id === id ? { ...b, status: "paid" } : b)),
-    );
+    billStatusMutation.mutate({ id, status: "paid" });
   };
 
   const handleUndo = useCallback(() => {
     if (!toast) return;
-    setBills((prev) =>
-      prev.map((b) =>
-        b.id === toast.billId ? { ...b, status: toast.previousStatus } : b,
-      ),
-    );
+    billStatusMutation.mutate({
+      id: toast.billId,
+      status: toast.previousStatus,
+    });
     setToast(null);
-  }, [toast]);
+  }, [billStatusMutation, toast]);
 
   const handleToggleInstallment = (id: string, paidInstallments: number) => {
-    setInstallments((prev) =>
-      prev.map((i) => {
-        if (i.id !== id) return i;
-        const monthlyAmount = i.totalAmount / i.totalInstallments;
-        return {
-          ...i,
-          paidInstallments,
-          paidAmount: monthlyAmount * paidInstallments,
-        };
-      }),
-    );
-    // Atualiza o modal em tempo real
-    setSelectedInstallment((prev) => {
-      if (!prev || prev.id !== id) return prev;
-      const monthlyAmount = prev.totalAmount / prev.totalInstallments;
-      return {
-        ...prev,
-        paidInstallments,
-        paidAmount: monthlyAmount * paidInstallments,
-      };
-    });
+    installmentMutation.mutate({ id, paidInstallments });
   };
 
   const handleSaveBill = (b: Omit<FixedBill, "id" | "status">) =>
-    setBills((prev) => [
-      { ...b, id: crypto.randomUUID(), status: "pending" },
-      ...prev,
-    ]);
+    createBillMutation.mutate(b);
 
   const handleSaveInstallment = (
     i: Omit<
@@ -89,16 +165,7 @@ export default function RecurringPage() {
       "id" | "paidAmount" | "paidInstallments" | "startDate"
     >,
   ) =>
-    setInstallments((prev) => [
-      {
-        ...i,
-        id: crypto.randomUUID(),
-        paidAmount: 0,
-        paidInstallments: 0,
-        startDate: new Date().toISOString().split("T")[0],
-      },
-      ...prev,
-    ]);
+    createInstallmentMutation.mutate(i);
 
   return (
     <div className="flex flex-col gap-8 p-6 h-full overflow-y-auto scrollbar-hide">
@@ -125,6 +192,15 @@ export default function RecurringPage() {
       </div>
 
       <SummaryBar bills={bills} installments={installments} />
+
+      {isLoading && (
+        <p className="text-text-muted text-sm">Carregando recorrentes...</p>
+      )}
+      {isError && (
+        <p className="text-red-400 text-sm">
+          Não consegui carregar contas fixas e parcelamentos agora.
+        </p>
+      )}
 
       {/* Fixed Bills */}
       <section className="flex flex-col gap-4">

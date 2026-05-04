@@ -23,6 +23,7 @@ import {
 } from "@phosphor-icons/react";
 import Logo from "@/components/layout/Logo";
 import { cn } from "@/lib/cn";
+import { createClient } from "@/lib/supabase/client";
 
 const NAV_SECTIONS = [
   {
@@ -53,6 +54,7 @@ const NAV_SINGLES = [
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
+  const supabase = createClient();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     home: true,
@@ -61,6 +63,12 @@ export default function Sidebar() {
   const toggleSection = (key: string) => {
     if (isCollapsed) return;
     setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    router.replace("/login");
+    router.refresh();
   };
 
   return (
@@ -230,7 +238,7 @@ export default function Sidebar() {
         </Link>
 
         <button
-          onClick={() => router.push("/login")}
+          onClick={handleSignOut}
           className={cn(
             "flex items-center w-full rounded-lg transition-all text-text-muted hover:text-red-400 hover:bg-red-500/10",
             isCollapsed ? "justify-center p-3" : "gap-3 px-3 py-2.5",

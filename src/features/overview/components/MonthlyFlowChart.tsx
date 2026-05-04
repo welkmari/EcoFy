@@ -4,15 +4,7 @@ import { useMemo, useState } from "react";
 import { formatBrl, formatCompactBrl } from "@/lib/chartFormatter";
 import { cn } from "@/lib/cn";
 
-const data = [
-  { day: "01", entradas: 3200, saidas: 1800 },
-  { day: "05", entradas: 4100, saidas: 2200 },
-  { day: "10", entradas: 3800, saidas: 3100 },
-  { day: "15", entradas: 5200, saidas: 2800 },
-  { day: "20", entradas: 4700, saidas: 3600 },
-  { day: "25", entradas: 6100, saidas: 3200 },
-  { day: "30", entradas: 5800, saidas: 4100 },
-];
+type FlowPoint = { day: string; entradas: number; saidas: number };
 
 const chart = {
   width: 720,
@@ -25,8 +17,6 @@ const chart = {
 
 const plotWidth = chart.width - chart.left - chart.right;
 const plotHeight = chart.height - chart.top - chart.bottom;
-const ticks = [0, 2000, 4000, 6000];
-const maxValue = 6500;
 
 type SeriesKey = "entradas" | "saidas";
 
@@ -50,50 +40,57 @@ const series: Array<{
   },
 ];
 
-function getX(index: number) {
-  return chart.left + (index / (data.length - 1)) * plotWidth;
+function getX(index: number, length: number) {
+  return chart.left + (index / Math.max(length - 1, 1)) * plotWidth;
 }
 
-function getY(value: number) {
+function getY(value: number, maxValue: number) {
   return chart.top + (1 - value / maxValue) * plotHeight;
 }
 
-function getLinePath(key: SeriesKey) {
+function getLinePath(data: FlowPoint[], key: SeriesKey, maxValue: number) {
   return data
-    .map((item, index) => `${index === 0 ? "M" : "L"} ${getX(index)} ${getY(item[key])}`)
+    .map((item, index) => `${index === 0 ? "M" : "L"} ${getX(index, data.length)} ${getY(item[key], maxValue)}`)
     .join(" ");
 }
 
-function getAreaPath(key: SeriesKey) {
-  const line = getLinePath(key);
-  const lastX = getX(data.length - 1);
-  const firstX = getX(0);
+function getAreaPath(data: FlowPoint[], key: SeriesKey, maxValue: number) {
+  const line = getLinePath(data, key, maxValue);
+  const lastX = getX(data.length - 1, data.length);
+  const firstX = getX(0, data.length);
   const baseY = chart.top + plotHeight;
 
   return `${line} L ${lastX} ${baseY} L ${firstX} ${baseY} Z`;
 }
 
-function getTooltipPlacement(index: number) {
+function getTooltipPlacement(index: number, length: number) {
   if (index <= 1) return "translateX(0)";
-  if (index >= data.length - 2) return "translateX(-100%)";
+  if (index >= length - 2) return "translateX(-100%)";
   return "translateX(-50%)";
 }
 
-export default function MonthlyFlowChart() {
+export default function MonthlyFlowChart({ data }: { data: FlowPoint[] }) {
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const chartData = data.length ? data : [{ day: "--", entradas: 0, saidas: 0 }];
+  const maxDataValue = Math.max(
+    1,
+    ...chartData.flatMap((item) => [item.entradas, item.saidas]),
+  );
+  const maxValue = Math.ceil(maxDataValue / 1000) * 1000 || 1000;
+  const ticks = [0, maxValue / 3, (maxValue / 3) * 2, maxValue];
 
   const totals = useMemo(
     () => ({
-      entradas: data.reduce((sum, item) => sum + item.entradas, 0),
-      saidas: data.reduce((sum, item) => sum + item.saidas, 0),
+      entradas: chartData.reduce((sum, item) => sum + item.entradas, 0),
+      saidas: chartData.reduce((sum, item) => sum + item.saidas, 0),
     }),
-    [],
+    [chartData],
   );
 
   const activeIndex = hoverIndex ?? selectedIndex;
-  const active = activeIndex == null ? null : data[activeIndex];
-  const activeX = activeIndex == null ? null : getX(activeIndex);
+  const active = activeIndex == null ? null : chartData[activeIndex];
+  const activeX = activeIndex == null ? null : getX(activeIndex, chartData.length);
 
   return (
     <div className="bg-surface/50 p-5 rounded-2xl border border-border-default flex flex-col gap-4 h-full min-h-[320px]">
@@ -151,7 +148,7 @@ export default function MonthlyFlowChart() {
           </defs>
 
           {ticks.map((tick) => {
-            const y = getY(tick);
+            const y = getY(tick, maxValue);
             return (
               <g key={tick}>
                 <line
@@ -174,10 +171,10 @@ export default function MonthlyFlowChart() {
             );
           })}
 
-          {data.map((item, index) => (
+          {chartData.map((item, index) => (
             <text
               key={item.day}
-              x={getX(index)}
+              x={getX(index, chartData.length)}
               y={chart.height - 12}
               textAnchor="middle"
               className="fill-text-muted text-[11px]"
@@ -188,9 +185,9 @@ export default function MonthlyFlowChart() {
 
           {series.map((item) => (
             <g key={item.key}>
-              <path d={getAreaPath(item.key)} fill={item.fill} />
+              <path d={getAreaPath(chartData, item.key, maxValue)} fill={item.fill} />
               <path
-                d={getLinePath(item.key)}
+                d={getLinePath(chartData, item.key, maxValue)}
                 fill="none"
                 stroke={item.color}
                 strokeWidth="3"
@@ -216,7 +213,7 @@ export default function MonthlyFlowChart() {
                 <circle
                   key={item.key}
                   cx={activeX}
-                  cy={getY(active[item.key])}
+                  cy={getY(active[item.key], maxValue)}
                   r="5"
                   fill={item.color}
                   stroke="#0b1120"
@@ -226,12 +223,12 @@ export default function MonthlyFlowChart() {
             </>
           )}
 
-          {data.map((item, index) => {
-            const previous = index === 0 ? chart.left : (getX(index - 1) + getX(index)) / 2;
+          {chartData.map((item, index) => {
+            const previous = index === 0 ? chart.left : (getX(index - 1, chartData.length) + getX(index, chartData.length)) / 2;
             const next =
-              index === data.length - 1
+              index === chartData.length - 1
                 ? chart.width - chart.right
-                : (getX(index) + getX(index + 1)) / 2;
+                : (getX(index, chartData.length) + getX(index + 1, chartData.length)) / 2;
 
             return (
               <rect
@@ -256,7 +253,7 @@ export default function MonthlyFlowChart() {
             )}
             style={{
               left: `${(activeX / chart.width) * 100}%`,
-              transform: getTooltipPlacement(activeIndex),
+              transform: getTooltipPlacement(activeIndex, chartData.length),
             }}
           >
             <p className="mb-1 text-[10px] font-semibold uppercase text-text-muted">

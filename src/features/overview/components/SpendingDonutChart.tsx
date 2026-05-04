@@ -4,32 +4,12 @@ import { useState } from "react";
 import { formatBrl, formatCompactBrl } from "@/lib/chartFormatter";
 import { cn } from "@/lib/cn";
 
-const data = [
-  { name: "Alimentação", value: 1840, color: "#818cf8" },
-  { name: "Transporte", value: 720, color: "#34d399" },
-  { name: "Lazer", value: 560, color: "#fb7185" },
-  { name: "Contas Fixas", value: 1200, color: "#fbbf24" },
-  { name: "Outros", value: 380, color: "#64748b" },
-];
+type SpendingPoint = { name: string; value: number; color: string };
 
-const total = data.reduce((acc, item) => acc + item.value, 0);
 const center = 120;
 const radius = 78;
 const stroke = 24;
 const gap = 3;
-const slices = data.map((item, index) => {
-  const start = data
-    .slice(0, index)
-    .reduce((acc, current) => acc + (current.value / total) * 360, 0);
-  const size = (item.value / total) * 360;
-
-  return {
-    ...item,
-    startAngle: start + gap / 2,
-    endAngle: start + size - gap / 2,
-    percent: Math.round((item.value / total) * 100),
-  };
-});
 
 function polarToCartesian(angle: number) {
   const angleInRadians = ((angle - 90) * Math.PI) / 180;
@@ -60,11 +40,28 @@ function describeArc(startAngle: number, endAngle: number) {
   ].join(" ");
 }
 
-export default function SpendingDonutChart() {
+export default function SpendingDonutChart({ data }: { data: SpendingPoint[] }) {
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const chartData = data.length
+    ? data
+    : [{ name: "Sem gastos", value: 1, color: "#1f2937" }];
+  const total = chartData.reduce((acc, item) => acc + item.value, 0);
+  const slices = chartData.map((item, index) => {
+    const start = chartData
+      .slice(0, index)
+      .reduce((acc, current) => acc + (current.value / total) * 360, 0);
+    const size = (item.value / total) * 360;
+
+    return {
+      ...item,
+      startAngle: start + gap / 2,
+      endAngle: start + size - gap / 2,
+      percent: Math.round((item.value / total) * 100),
+    };
+  });
   const activeIndex = hoverIndex ?? selectedIndex;
-  const active = activeIndex == null ? null : data[activeIndex];
+  const active = activeIndex == null ? null : chartData[activeIndex];
 
   return (
     <div className="bg-surface/50 p-5 rounded-2xl border border-border-default flex flex-col gap-4 h-full min-h-[320px]">

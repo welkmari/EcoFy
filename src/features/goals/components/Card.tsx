@@ -4,7 +4,7 @@ import { PlusCircle } from '@phosphor-icons/react';
 import { Cofrinho } from '../types/cofrinho';
 
 type Props = Cofrinho & {
-  onDeposit: (id: number) => void;
+  onDeposit: (id: string) => void;
 };
 
 export default function Card({ id, title, current, total, icon: Icon, onDeposit }: Props) {

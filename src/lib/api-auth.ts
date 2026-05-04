@@ -1,0 +1,19 @@
+import { createClient } from "@/lib/supabase/server";
+
+export async function requireUser() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
+
+  if (error || !user) {
+    return { user: null, response: Response.json({ error: "Unauthorized" }, { status: 401 }) };
+  }
+
+  return { user, response: null };
+}
+
+export function toNumber(value: string | number | null | undefined) {
+  return Number(value ?? 0);
+}

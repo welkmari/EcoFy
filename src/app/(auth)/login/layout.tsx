@@ -1,20 +1,7 @@
-import type { Metadata } from 'next';
-import '@/styles/global.css';
-
-export const metadata: Metadata = {
-  title: 'Ecofy',
-};
-
-export default function AuthLayout({
+export default function LoginLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <html lang="pt-BR">
-      <body className="bg-base">
-        {children}
-      </body>
-    </html>
-  );
+  return <>{children}</>;
 }

@@ -1,54 +1,107 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { Eye, EyeSlash, ArrowRight, Globe, Layout, EnvelopeSimple, Lock } from '@phosphor-icons/react';
-import Logo from '@/components/layout/Logo';
+import { useState } from "react";
+import Link from "next/link";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import {
+  Eye,
+  EyeSlash,
+  ArrowRight,
+  Globe,
+  Layout,
+  EnvelopeSimple,
+  Lock,
+} from "@phosphor-icons/react";
+import { useRouter } from "next/navigation";
+import Logo from "@/components/layout/Logo";
+import { createClient } from "@/lib/supabase/client";
+
+const loginSchema = z.object({
+  email: z.string().email("E-mail inválido"),
+  password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
+});
+
+type LoginForm = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const router = useRouter();
+  const supabase = createClient();
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setTimeout(() => setIsLoading(false), 2000);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginForm>({
+    resolver: zodResolver(loginSchema),
+  });
+
+  const onSubmit = async (data: LoginForm) => {
+    setAuthError(null);
+    const { error } = await supabase.auth.signInWithPassword({
+      email: data.email,
+      password: data.password,
+    });
+
+    if (error) {
+      setAuthError("E-mail ou senha incorretos.");
+      return;
+    }
+
+    router.replace("/overview");
+    router.refresh();
   };
 
   return (
     <div className="min-h-screen bg-base flex items-center justify-center p-4 font-sans">
       <div className="w-full max-w-md bg-base border border-border-default rounded-2xl p-8 shadow-2xl shadow-purple-500/5">
-
         <div className="flex flex-col items-center mb-10">
           <Logo isCollapsed={false} />
-          <h1 className="text-text-primary text-2xl font-bold mt-6">Bem-vindo de volta</h1>
-          <p className="text-text-muted text-sm mt-2 text-center">Entre com suas credenciais para acessar a plataforma.</p>
+          <h1 className="text-text-primary text-2xl font-bold mt-6">
+            Bem-vindo de volta
+          </h1>
+          <p className="text-text-muted text-sm mt-2 text-center">
+            Entre com suas credenciais para acessar a plataforma.
+          </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           <div className="space-y-2">
             <label className="text-sm text-text-secondary ml-1">E-mail</label>
             <div className="relative group">
               <EnvelopeSimple className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-text-muted group-focus-within:text-purple-500 transition-colors" />
               <input
+                {...register("email")}
                 type="email"
-                required
                 placeholder="seu@email.com"
                 className="w-full bg-surface border border-border-default rounded-xl py-3 pl-11 pr-4 text-text-primary text-sm focus:ring-2 focus:ring-border-active focus:border-purple-500 outline-none transition-all placeholder:text-text-muted"
               />
             </div>
+            {errors.email && (
+              <p className="text-red-400 text-xs ml-1">
+                {errors.email.message}
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">
             <div className="flex justify-between items-center ml-1">
               <label className="text-sm text-text-secondary">Senha</label>
-              <Link href="#" className="text-xs text-purple-400 hover:text-purple-300 transition-colors">Esqueceu a senha?</Link>
+              <Link
+                href="#"
+                className="text-xs text-purple-400 hover:text-purple-300 transition-colors"
+              >
+                Esqueceu a senha?
+              </Link>
             </div>
             <div className="relative group">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-text-muted group-focus-within:text-purple-500 transition-colors" />
               <input
-                type={showPassword ? 'text' : 'password'}
-                required
+                {...register("password")}
+                type={showPassword ? "text" : "password"}
                 placeholder="••••••••"
                 className="w-full bg-surface border border-border-default rounded-xl py-3 pl-11 pr-12 text-text-primary text-sm focus:ring-2 focus:ring-border-active focus:border-purple-500 outline-none transition-all placeholder:text-text-muted"
               />
@@ -60,15 +113,26 @@ export default function LoginPage() {
                 {showPassword ? <EyeSlash size={20} /> : <Eye size={20} />}
               </button>
             </div>
+            {errors.password && (
+              <p className="text-red-400 text-xs ml-1">
+                {errors.password.message}
+              </p>
+            )}
           </div>
+
+          {authError && (
+            <p className="text-red-400 text-sm text-center bg-red-400/10 rounded-xl py-2">
+              {authError}
+            </p>
+          )}
 
           <button
             type="submit"
-            disabled={isLoading}
-            className="w-full py-3 mt-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-text-primary rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-purple-500/20 active:scale-[0.98] disabled:opacity-70"
+            disabled={isSubmitting}
+            className="w-full py-3 mt-4 bg-linear-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-text-primary rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-purple-500/20 active:scale-[0.98] disabled:opacity-70"
           >
-            {isLoading ? 'Autenticando...' : 'Acessar Conta'}
-            {!isLoading && <ArrowRight size={18} />}
+            {isSubmitting ? "Autenticando..." : "Acessar Conta"}
+            {!isSubmitting && <ArrowRight size={18} />}
           </button>
         </form>
 
@@ -76,7 +140,9 @@ export default function LoginPage() {
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-border-default" />
           </div>
-          <span className="relative px-4 bg-base text-xs text-text-muted uppercase tracking-widest">ou continue com</span>
+          <span className="relative px-4 bg-base text-xs text-text-muted uppercase tracking-widest">
+            ou continue com
+          </span>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
@@ -89,8 +155,10 @@ export default function LoginPage() {
         </div>
 
         <p className="text-center text-text-muted text-sm mt-8">
-          Não tem uma conta?{' '}
-          <Link href="#" className="text-cyan-400 hover:underline font-medium">Crie agora</Link>
+          Não tem uma conta?{" "}
+          <Link href="#" className="text-cyan-400 hover:underline font-medium">
+            Crie agora
+          </Link>
         </p>
       </div>
     </div>

@@ -115,7 +115,7 @@ export default function RecurringPage() {
 
       <section className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-white font-semibold text-base">Fixed Bills</h2>
+          <h2 className="text-white font-semibold ">Fixed Bills</h2>
           <div className="flex items-center gap-2">
             {BILL_FILTERS.map((f) => (
               <button
@@ -152,7 +152,7 @@ export default function RecurringPage() {
       </section>
 
       <section className="flex flex-col gap-4">
-        <h2 className="text-white font-semibold text-base">Installments</h2>
+        <h2 className="text-white font-semibold ">Installments</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {installments.map((i) => (
             <InstallmentRow

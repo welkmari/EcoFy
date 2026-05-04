@@ -4,56 +4,12 @@ import { useState } from "react";
 import { formatBrl, formatCompactBrl } from "@/lib/chartFormatter";
 import { cn } from "@/lib/cn";
 
-const categories = [
-  {
-    label: "Alimentação",
-    spent: 1840,
-    budget: 2000,
-    color: "#818cf8",
-  },
-  {
-    label: "Transporte",
-    spent: 720,
-    budget: 800,
-    color: "#34d399",
-  },
-  {
-    label: "Lazer",
-    spent: 560,
-    budget: 500,
-    color: "#fb7185",
-  },
-  {
-    label: "Contas Fixas",
-    spent: 1200,
-    budget: 1200,
-    color: "#fbbf24",
-  },
-];
-
-const totalSpent = 4700;
-const totalBudget = 7000;
-const healthPct = Math.min((totalSpent / totalBudget) * 100, 100);
-const categoriesSpent = categories.reduce((acc, item) => acc + item.spent, 0);
-const available = Math.max(totalBudget - categoriesSpent, 0);
-
-const segments = [
-  ...categories.map((item) => ({
-    ...item,
-    type: "category" as const,
-    percent: (item.spent / totalBudget) * 100,
-    usedPercent: Math.min((item.spent / item.budget) * 100, 100),
-  })),
-  {
-    label: "Disponível",
-    spent: available,
-    budget: available,
-    color: "#1f2937",
-    type: "available" as const,
-    percent: (available / totalBudget) * 100,
-    usedPercent: 0,
-  },
-];
+type BudgetCategory = {
+  label: string;
+  spent: number;
+  budget: number;
+  color: string;
+};
 
 function getHealthLabel(pct: number) {
   if (pct < 50) return { text: "Ótimo", color: "text-emerald-400" };
@@ -61,22 +17,55 @@ function getHealthLabel(pct: number) {
   return { text: "Crítico", color: "text-rose-400" };
 }
 
-function getTooltipLeft(index: number) {
+function getTooltipLeft(
+  segments: Array<{ percent: number }>,
+  index: number,
+) {
   const previous = segments
     .slice(0, index)
     .reduce((acc, item) => acc + item.percent, 0);
   return previous + segments[index].percent / 2;
 }
 
-function getTooltipTransform(index: number) {
+function getTooltipTransform(length: number, index: number) {
   if (index <= 1) return "translateX(0)";
-  if (index >= segments.length - 2) return "translateX(-100%)";
+  if (index >= length - 2) return "translateX(-100%)";
   return "translateX(-50%)";
 }
 
-export default function BudgetHealthBar() {
+export default function BudgetHealthBar({
+  categories,
+  totalSpent,
+  totalBudget,
+}: {
+  categories: BudgetCategory[];
+  totalSpent: number;
+  totalBudget: number;
+}) {
   const [activeIndex, setActiveIndex] = useState(0);
-  const active = segments[activeIndex];
+  const safeBudget = Math.max(totalBudget, 1);
+  const healthPct = Math.min((totalSpent / safeBudget) * 100, 100);
+  const categoriesSpent = categories.reduce((acc, item) => acc + item.spent, 0);
+  const available = Math.max(safeBudget - categoriesSpent, 0);
+  const segments = [
+    ...categories.map((item) => ({
+      ...item,
+      type: "category" as const,
+      percent: Math.max((item.spent / safeBudget) * 100, 1),
+      usedPercent: Math.min((item.spent / Math.max(item.budget, 1)) * 100, 100),
+    })),
+    {
+      label: "Disponível",
+      spent: available,
+      budget: available,
+      color: "#1f2937",
+      type: "available" as const,
+      percent: Math.max((available / safeBudget) * 100, categories.length ? 1 : 100),
+      usedPercent: 0,
+    },
+  ];
+  const safeActiveIndex = Math.min(activeIndex, segments.length - 1);
+  const active = segments[safeActiveIndex];
   const health = getHealthLabel(healthPct);
   const isAvailable = active.type === "available";
 
@@ -125,7 +114,7 @@ export default function BudgetHealthBar() {
                   onFocus={() => setActiveIndex(index)}
                   className={cn(
                     "h-full min-w-2 transition-all duration-200",
-                    activeIndex === index && "brightness-125",
+                    safeActiveIndex === index && "brightness-125",
                   )}
                   style={{
                     width: `${item.percent}%`,
@@ -139,8 +128,8 @@ export default function BudgetHealthBar() {
             <div
               className="pointer-events-none absolute top-11 z-10 w-40 rounded-lg border border-border-default bg-base/95 px-2.5 py-2 text-xs shadow-xl shadow-black/30"
               style={{
-                left: `${getTooltipLeft(activeIndex)}%`,
-                transform: getTooltipTransform(activeIndex),
+                left: `${getTooltipLeft(segments, safeActiveIndex)}%`,
+                transform: getTooltipTransform(segments.length, safeActiveIndex),
               }}
             >
               <div className="mb-1 flex items-center justify-between gap-2">
@@ -186,7 +175,7 @@ export default function BudgetHealthBar() {
                 onFocus={() => setActiveIndex(index)}
                 className={cn(
                   "rounded-md border px-2.5 py-2 text-left transition-colors",
-                  activeIndex === index
+                  safeActiveIndex === index
                     ? "border-border-active bg-base/60"
                     : "border-transparent bg-base/20 hover:border-border-default",
                 )}

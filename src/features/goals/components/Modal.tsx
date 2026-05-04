@@ -2,14 +2,14 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { X, CheckCircle, Target } from '@phosphor-icons/react';
-import { Icon } from '@phosphor-icons/react';
 import { Cofrinho, ModalState } from '../types/cofrinho';
+import type { CofrinhoIconKey } from '../icons';
 import CofrinhoIconPicker from './iconPicker';
 
 type Props = {
   state: ModalState;
   cofrinhos: Cofrinho[];
-  onDeposit: (id: number, amount: number) => void;
+  onDeposit: (id: string, amount: number) => void;
   onCreate: (data: Omit<Cofrinho, 'id'>) => void;
   onClose: () => void;
 };
@@ -20,7 +20,7 @@ function DepositMode({
   onClose,
 }: {
   cofrinho: Cofrinho;
-  onDeposit: (id: number, amount: number) => void;
+  onDeposit: (id: string, amount: number) => void;
   onClose: () => void;
 }) {
   const [value, setValue] = useState('');
@@ -126,13 +126,19 @@ function CreateMode({
   const [title, setTitle] = useState('');
   const [total, setTotal] = useState('');
   const [initial, setInitial] = useState('');
-  const [icon, setIcon] = useState<Icon>(Target);
+  const [iconKey, setIconKey] = useState<CofrinhoIconKey>('target');
 
   const handleConfirm = () => {
     const totalNum = parseFloat(total.replace(',', '.'));
     const initialNum = parseFloat(initial.replace(',', '.')) || 0;
     if (!title.trim() || !totalNum || totalNum <= 0) return;
-    onCreate({ title: title.trim(), total: totalNum, current: initialNum, icon });
+    onCreate({
+      title: title.trim(),
+      total: totalNum,
+      current: initialNum,
+      iconKey,
+      icon: Target,
+    });
     onClose();
   };
 
@@ -181,7 +187,7 @@ function CreateMode({
         </div>
       </div>
 
-      <CofrinhoIconPicker selected={icon} onChange={setIcon} />
+      <CofrinhoIconPicker selected={iconKey} onChange={setIconKey} />
 
       <div className="flex gap-3 pt-2">
         <button

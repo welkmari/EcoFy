@@ -6,9 +6,10 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
+  ArrowRight,
+  CheckCircle,
   Eye,
   EyeSlash,
-  ArrowRight,
   Globe,
   Layout,
   EnvelopeSimple,
@@ -28,12 +29,15 @@ type LoginForm = z.infer<typeof loginSchema>;
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [resetSentTo, setResetSentTo] = useState<string | null>(null);
+  const [isResetting, setIsResetting] = useState(false);
   const router = useRouter();
   const supabase = createClient();
 
   const {
     register,
     handleSubmit,
+    getValues,
     formState: { errors, isSubmitting },
   } = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
@@ -41,6 +45,7 @@ export default function LoginPage() {
 
   const onSubmit = async (data: LoginForm) => {
     setAuthError(null);
+
     const { error } = await supabase.auth.signInWithPassword({
       email: data.email,
       password: data.password,
@@ -55,6 +60,33 @@ export default function LoginPage() {
     router.refresh();
   };
 
+  const handleResetPassword = async () => {
+    const email = getValues("email");
+    const parsed = z.string().email().safeParse(email);
+
+    if (!parsed.success) {
+      setAuthError("Digite seu e-mail primeiro para recuperar a senha.");
+      return;
+    }
+
+    setAuthError(null);
+    setIsResetting(true);
+
+    const redirectTo = `${window.location.origin}/auth/callback?next=/auth/update-password`;
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo,
+    });
+
+    setIsResetting(false);
+
+    if (error) {
+      setAuthError("Não consegui enviar o e-mail de recuperação agora.");
+      return;
+    }
+
+    setResetSentTo(email);
+  };
+
   return (
     <div className="min-h-screen bg-base flex items-center justify-center p-4 font-sans">
       <div className="w-full max-w-md bg-base border border-border-default rounded-2xl p-8 shadow-2xl shadow-purple-500/5">
@@ -64,7 +96,7 @@ export default function LoginPage() {
             Bem-vindo de volta
           </h1>
           <p className="text-text-muted text-sm mt-2 text-center">
-            Entre com suas credenciais para acessar a plataforma.
+            Entre com seu e-mail e senha para acessar a plataforma.
           </p>
         </div>
 
@@ -90,12 +122,14 @@ export default function LoginPage() {
           <div className="space-y-2">
             <div className="flex justify-between items-center ml-1">
               <label className="text-sm text-text-secondary">Senha</label>
-              <Link
-                href="#"
-                className="text-xs text-purple-400 hover:text-purple-300 transition-colors"
+              <button
+                type="button"
+                onClick={handleResetPassword}
+                disabled={isResetting}
+                className="text-xs text-purple-400 hover:text-purple-300 disabled:opacity-60 transition-colors"
               >
-                Esqueceu a senha?
-              </Link>
+                {isResetting ? "Enviando..." : "Esqueci minha senha"}
+              </button>
             </div>
             <div className="relative group">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-text-muted group-focus-within:text-purple-500 transition-colors" />
@@ -120,6 +154,17 @@ export default function LoginPage() {
             )}
           </div>
 
+          {resetSentTo && (
+            <p className="flex items-center justify-center gap-2 text-cyan-400 text-sm text-center bg-cyan-400/10 rounded-xl py-2">
+              <CheckCircle
+                size={16}
+                weight="fill"
+                className="shrink-0"
+              />
+              Link de recuperação enviado para {resetSentTo}.
+            </p>
+          )}
+
           {authError && (
             <p className="text-red-400 text-sm text-center bg-red-400/10 rounded-xl py-2">
               {authError}
@@ -131,7 +176,7 @@ export default function LoginPage() {
             disabled={isSubmitting}
             className="w-full py-3 mt-4 bg-linear-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-text-primary rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-purple-500/20 active:scale-[0.98] disabled:opacity-70"
           >
-            {isSubmitting ? "Autenticando..." : "Acessar Conta"}
+            {isSubmitting ? "Entrando..." : "Entrar"}
             {!isSubmitting && <ArrowRight size={18} />}
           </button>
         </form>
@@ -156,7 +201,10 @@ export default function LoginPage() {
 
         <p className="text-center text-text-muted text-sm mt-8">
           Não tem uma conta?{" "}
-          <Link href="#" className="text-cyan-400 hover:underline font-medium">
+          <Link
+            href="/register"
+            className="text-cyan-400 hover:underline font-medium"
+          >
             Crie agora
           </Link>
         </p>

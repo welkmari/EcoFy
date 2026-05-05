@@ -50,7 +50,10 @@ function getY(value: number, maxValue: number) {
 
 function getLinePath(data: FlowPoint[], key: SeriesKey, maxValue: number) {
   return data
-    .map((item, index) => `${index === 0 ? "M" : "L"} ${getX(index, data.length)} ${getY(item[key], maxValue)}`)
+    .map(
+      (item, index) =>
+        `${index === 0 ? "M" : "L"} ${getX(index, data.length)} ${getY(item[key], maxValue)}`,
+    )
     .join(" ");
 }
 
@@ -72,7 +75,12 @@ function getTooltipPlacement(index: number, length: number) {
 export default function MonthlyFlowChart({ data }: { data: FlowPoint[] }) {
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-  const chartData = data.length ? data : [{ day: "--", entradas: 0, saidas: 0 }];
+
+  const chartData = useMemo(
+    () => (data.length ? data : [{ day: "--", entradas: 0, saidas: 0 }]),
+    [data],
+  );
+
   const maxDataValue = Math.max(
     1,
     ...chartData.flatMap((item) => [item.entradas, item.saidas]),
@@ -90,7 +98,8 @@ export default function MonthlyFlowChart({ data }: { data: FlowPoint[] }) {
 
   const activeIndex = hoverIndex ?? selectedIndex;
   const active = activeIndex == null ? null : chartData[activeIndex];
-  const activeX = activeIndex == null ? null : getX(activeIndex, chartData.length);
+  const activeX =
+    activeIndex == null ? null : getX(activeIndex, chartData.length);
 
   return (
     <div className="bg-surface/50 p-5 rounded-2xl border border-border-default flex flex-col gap-4 h-full min-h-[320px]">
@@ -185,7 +194,10 @@ export default function MonthlyFlowChart({ data }: { data: FlowPoint[] }) {
 
           {series.map((item) => (
             <g key={item.key}>
-              <path d={getAreaPath(chartData, item.key, maxValue)} fill={item.fill} />
+              <path
+                d={getAreaPath(chartData, item.key, maxValue)}
+                fill={item.fill}
+              />
               <path
                 d={getLinePath(chartData, item.key, maxValue)}
                 fill="none"
@@ -224,11 +236,18 @@ export default function MonthlyFlowChart({ data }: { data: FlowPoint[] }) {
           )}
 
           {chartData.map((item, index) => {
-            const previous = index === 0 ? chart.left : (getX(index - 1, chartData.length) + getX(index, chartData.length)) / 2;
+            const previous =
+              index === 0
+                ? chart.left
+                : (getX(index - 1, chartData.length) +
+                    getX(index, chartData.length)) /
+                  2;
             const next =
               index === chartData.length - 1
                 ? chart.width - chart.right
-                : (getX(index, chartData.length) + getX(index + 1, chartData.length)) / 2;
+                : (getX(index, chartData.length) +
+                    getX(index + 1, chartData.length)) /
+                  2;
 
             return (
               <rect

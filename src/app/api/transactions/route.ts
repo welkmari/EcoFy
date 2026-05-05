@@ -1,4 +1,4 @@
-import { and, desc, eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { requireUser, toNumber } from "@/lib/api-auth";
 import { db } from "@/lib/db";

@@ -6,13 +6,13 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
-  ArrowRight,
-  CheckCircle,
-  EnvelopeSimple,
-  Eye,
-  EyeSlash,
-  Lock,
-  Sparkle,
+  ArrowRightIcon,
+  CheckCircleIcon,
+  EnvelopeSimpleIcon,
+  EyeIcon,
+  EyeSlashIcon,
+  LockIcon,
+  SparkleIcon,
 } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
 import Logo from "@/components/layout/Logo";
@@ -79,7 +79,7 @@ export default function RegisterPage() {
         <div className="flex flex-col items-center mb-10">
           <Logo isCollapsed={false} />
           <div className="mt-6 rounded-2xl bg-purple-500/10 p-3 text-purple-400">
-            {sentTo ? <CheckCircle size={28} weight="fill" /> : <Sparkle size={28} />}
+            {sentTo ? <CheckCircleIcon size={28} weight="fill" /> : <SparkleIcon size={28} />}
           </div>
           <h1 className="text-text-primary text-2xl font-bold mt-5">
             {sentTo ? "Confere seu e-mail" : "Crie sua conta"}
@@ -111,7 +111,7 @@ export default function RegisterPage() {
             <div className="space-y-2">
               <label className="text-sm text-text-secondary ml-1">E-mail</label>
               <div className="relative group">
-                <EnvelopeSimple className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-text-muted group-focus-within:text-purple-500 transition-colors" />
+                <EnvelopeSimpleIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-text-muted group-focus-within:text-purple-500 transition-colors" />
                 <input
                   {...register("email")}
                   type="email"
@@ -129,7 +129,7 @@ export default function RegisterPage() {
             <div className="space-y-2">
               <label className="text-sm text-text-secondary ml-1">Senha</label>
               <div className="relative group">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-text-muted group-focus-within:text-purple-500 transition-colors" />
+                <LockIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-text-muted group-focus-within:text-purple-500 transition-colors" />
                 <input
                   {...register("password")}
                   type={showPassword ? "text" : "password"}
@@ -141,7 +141,7 @@ export default function RegisterPage() {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-secondary transition-colors"
                 >
-                  {showPassword ? <EyeSlash size={20} /> : <Eye size={20} />}
+                  {showPassword ? <EyeSlashIcon size={20} /> : <EyeIcon size={20} />}
                 </button>
               </div>
               {errors.password && (
@@ -156,7 +156,7 @@ export default function RegisterPage() {
                 Confirmar senha
               </label>
               <div className="relative group">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-text-muted group-focus-within:text-purple-500 transition-colors" />
+                <LockIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-text-muted group-focus-within:text-purple-500 transition-colors" />
                 <input
                   {...register("confirmPassword")}
                   type={showConfirmPassword ? "text" : "password"}
@@ -169,9 +169,9 @@ export default function RegisterPage() {
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-secondary transition-colors"
                 >
                   {showConfirmPassword ? (
-                    <EyeSlash size={20} />
+                    <EyeSlashIcon size={20} />
                   ) : (
-                    <Eye size={20} />
+                    <EyeIcon size={20} />
                   )}
                 </button>
               </div>
@@ -194,7 +194,7 @@ export default function RegisterPage() {
               className="w-full py-3 mt-4 bg-linear-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-text-primary rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-purple-500/20 active:scale-[0.98] disabled:opacity-70"
             >
               {isSubmitting ? "Criando..." : "Criar conta"}
-              {!isSubmitting && <ArrowRight size={18} />}
+              {!isSubmitting && <ArrowRightIcon size={18} />}
             </button>
           </form>
         )}

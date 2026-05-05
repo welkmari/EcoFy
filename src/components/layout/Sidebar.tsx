@@ -10,8 +10,6 @@ import {
   GearSixIcon,
   CaretRightIcon,
   SignOutIcon,
-  ArrowCircleUpIcon,
-  ArrowCircleDownIcon,
   BellRingingIcon,
   WalletIcon,
   ListIcon,
@@ -24,6 +22,7 @@ import {
 import Logo from "@/components/layout/Logo";
 import { cn } from "@/lib/cn";
 import { createClient } from "@/lib/supabase/client";
+import Image from "next/image";
 
 const NAV_SECTIONS = [
   {
@@ -220,9 +219,11 @@ export default function Sidebar() {
             pathname === "/users" && "bg-surface ring-1 ring-border-active",
           )}
         >
-          <img
-            src="https://github.com/mariaroberta.png"
+          <Image
+            src="https://github.com/welkmari.png"
             alt="User"
+            width={40}
+            height={40}
             className="w-10 h-10 rounded-full border-2 border-border-default shrink-0"
           />
           {!isCollapsed && (

@@ -15,19 +15,6 @@ import {
 import { cn } from "@/lib/cn";
 import type { Transaction, TransactionType, TransactionStatus } from "../types";
 
-const DEFAULT_CATEGORIES = [
-  "Alimentação",
-  "Transporte",
-  "Moradia",
-  "Saúde",
-  "Lazer",
-  "Educação",
-  "Desenvolvimento",
-  "Investimentos",
-  "Trabalho",
-  "Outros",
-];
-
 const STATUS_OPTIONS: { value: TransactionStatus; label: string }[] = [
   { value: "recebido", label: "Recebido" },
   { value: "pendente", label: "Pendente" },
@@ -74,16 +61,14 @@ export default function TransactionModal({
   const categoryRef = useRef<HTMLDivElement>(null);
 
   const isEntrada = form.type === "entrada";
-  const accentColor = isEntrada ? "cyan" : "red";
 
-  useEffect(() => {
-    if (!open) {
-      setForm(EMPTY_FORM);
-      setNewCategory("");
-      setShowNewCategory(false);
-      setCategoryOpen(false);
-    }
-  }, [open]);
+  const handleClose = () => {
+    setForm(EMPTY_FORM);
+    setNewCategory("");
+    setShowNewCategory(false);
+    setCategoryOpen(false);
+    onClose();
+  };
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -118,27 +103,23 @@ export default function TransactionModal({
       amount: parseFloat(form.amount.replace(",", ".")),
       status: form.status,
     });
-    onClose();
+    handleClose();
   };
 
   if (!open) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-        onClick={onClose}
+        onClick={handleClose}
       />
 
-      {/* Modal */}
       <div className="relative w-full max-w-md bg-surface border border-border-default rounded-2xl shadow-2xl overflow-hidden">
-        {/* Accent bar top — muda cor com o tipo */}
         <div
           className={cn("h-1 w-full", isEntrada ? "bg-cyan-400" : "bg-red-400")}
         />
 
-        {/* Header */}
         <div className="flex items-center justify-between px-6 pt-5 pb-4">
           <div>
             <h2 className="text-white font-semibold text-lg">Nova Transação</h2>
@@ -147,14 +128,13 @@ export default function TransactionModal({
             </p>
           </div>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="p-2 rounded-lg text-text-muted hover:text-white hover:bg-white/10 transition-colors"
           >
             <XIcon size={18} />
           </button>
         </div>
 
-        {/* Type toggle */}
         <div className="px-6 pb-5">
           <div className="flex rounded-xl overflow-hidden border border-border-default">
             <button
@@ -189,9 +169,7 @@ export default function TransactionModal({
           </div>
         </div>
 
-        {/* Fields */}
         <div className="px-6 pb-6 flex flex-col gap-4">
-          {/* Descrição */}
           <Field icon={<AlignLeftIcon size={16} />} label="Descrição">
             <input
               type="text"
@@ -204,7 +182,6 @@ export default function TransactionModal({
             />
           </Field>
 
-          {/* Valor */}
           <Field icon={<CurrencyDollarIcon size={16} />} label="Valor">
             <span className="text-text-muted text-sm shrink-0">R$</span>
             <input
@@ -218,7 +195,6 @@ export default function TransactionModal({
             />
           </Field>
 
-          {/* Categoria — dropdown customizado */}
           <div className="flex flex-col gap-1.5">
             <label className="text-text-muted text-xs font-medium flex items-center gap-1.5">
               <TagIcon size={14} />
@@ -259,7 +235,6 @@ export default function TransactionModal({
                     ))}
                   </div>
 
-                  {/* Criar nova categoria */}
                   <div className="border-t border-border-default p-2">
                     {showNewCategory ? (
                       <div className="flex items-center gap-2">
@@ -296,7 +271,6 @@ export default function TransactionModal({
             </div>
           </div>
 
-          {/* Data */}
           <Field icon={<CalendarIcon size={16} />} label="Data">
             <input
               type="date"
@@ -306,7 +280,6 @@ export default function TransactionModal({
             />
           </Field>
 
-          {/* Status */}
           <div className="flex flex-col gap-1.5">
             <label className="text-text-muted text-xs font-medium">
               Status
@@ -333,7 +306,6 @@ export default function TransactionModal({
             </div>
           </div>
 
-          {/* Submit */}
           <button
             onClick={handleSubmit}
             disabled={!form.description || !form.amount || !form.category}

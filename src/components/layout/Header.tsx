@@ -1,6 +1,7 @@
 "use client";
 
 import { BellIcon, CaretDownIcon } from "@phosphor-icons/react";
+import Image from "next/image";
 
 interface HeaderProps {
   userName?: string;
@@ -11,7 +12,7 @@ interface HeaderProps {
 export default function Header({
   userName = "Maria",
   userRole = "Aqui estão as informações sobre todas as suas finanças.",
-  avatarUrl = "https://github.com/shadcn.png",
+  avatarUrl = "https://avatars.githubusercontent.com/welkmari",
 }: HeaderProps) {
   return (
     <header className="flex items-center justify-between w-full px-10 pt-12 pb-5 bg-base">
@@ -29,25 +30,26 @@ export default function Header({
         </button>
 
         <button className="flex items-center gap-2.5 pl-3 pr-3 py-2 rounded-2xl bg-surface border border-border-default hover:border-border-active hover:bg-surface transition-all shadow-lg">
-          <div className="relative">
-            <img
+          <div className="relative shrink-0">
+            <Image
               src={avatarUrl}
               alt={userName}
+              width={36}
+              height={36}
               className="w-9 h-9 rounded-xl border-2 border-border-active object-cover"
             />
             <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-surface" />
           </div>
-
-          <div className="hidden lg:block text-left mr-1">
-            <span className="text-text-primary text-sm font-bold block leading-tight">
+          <div className="hidden lg:flex lg:flex-col lg:justify-center text-left mr-1">
+            {" "}
+            <span className="text-text-primary text-sm font-bold leading-tight">
               {userName}
             </span>
             <span className="text-[10px] text-text-muted uppercase font-black leading-tight tracking-tighter">
               Premium User
             </span>
           </div>
-
-          <CaretDownIcon size={16} className="text-text-muted" />
+          <CaretDownIcon size={16} className="text-text-muted shrink-0" />{" "}
         </button>
       </div>
     </header>

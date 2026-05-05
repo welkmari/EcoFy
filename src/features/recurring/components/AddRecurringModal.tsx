@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { XIcon, RepeatIcon, CreditCardIcon } from "@phosphor-icons/react";
 import { cn } from "@/lib/cn";
 import type { FixedBill, Installment, Recurrence } from "../types";
@@ -37,6 +37,22 @@ const CATEGORIES = [
   "Outros",
 ];
 
+const EMPTY_BILL = {
+  name: "",
+  category: "",
+  amount: "",
+  recurrence: "monthly" as Recurrence,
+  dueDay: "",
+};
+
+const EMPTY_INST = {
+  name: "",
+  category: "",
+  totalAmount: "",
+  totalInstallments: "",
+  dueDay: "",
+};
+
 export default function AddRecurringModal({
   open,
   onClose,
@@ -44,41 +60,15 @@ export default function AddRecurringModal({
   onSaveInstallment,
 }: Props) {
   const [mode, setMode] = useState<Mode>("bill");
+  const [bill, setBill] = useState(EMPTY_BILL);
+  const [inst, setInst] = useState(EMPTY_INST);
 
-  const [bill, setBill] = useState({
-    name: "",
-    category: "",
-    amount: "",
-    recurrence: "monthly" as Recurrence,
-    dueDay: "",
-  });
-  const [inst, setInst] = useState({
-    name: "",
-    category: "",
-    totalAmount: "",
-    totalInstallments: "",
-    dueDay: "",
-  });
-
-  useEffect(() => {
-    if (!open) {
-      setBill({
-        name: "",
-        category: "",
-        amount: "",
-        recurrence: "monthly",
-        dueDay: "",
-      });
-      setInst({
-        name: "",
-        category: "",
-        totalAmount: "",
-        totalInstallments: "",
-        dueDay: "",
-      });
-      setMode("bill");
-    }
-  }, [open]);
+  const handleClose = () => {
+    setBill(EMPTY_BILL);
+    setInst(EMPTY_INST);
+    setMode("bill");
+    onClose();
+  };
 
   const monthlyPreview =
     inst.totalAmount && inst.totalInstallments
@@ -114,7 +104,7 @@ export default function AddRecurringModal({
         dueDay: parseInt(inst.dueDay),
       });
     }
-    onClose();
+    handleClose();
   };
 
   if (!open) return null;
@@ -123,7 +113,7 @@ export default function AddRecurringModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-        onClick={onClose}
+        onClick={handleClose}
       />
       <div className="relative w-full max-w-md bg-surface border border-border-default rounded-2xl shadow-2xl overflow-hidden">
         <div
@@ -143,14 +133,13 @@ export default function AddRecurringModal({
             </p>
           </div>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="p-2 rounded-lg text-text-muted hover:text-white hover:bg-white/10 transition-colors"
           >
             <XIcon size={18} />
           </button>
         </div>
 
-        {/* Toggle */}
         <div className="px-6 pb-5">
           <div className="flex rounded-xl overflow-hidden border border-border-default">
             <button

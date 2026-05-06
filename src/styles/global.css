@@ -33,3 +33,20 @@
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
+input[type="date"],
+input[type="month"] {
+  color-scheme: dark;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="month"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  filter: invert(72%) sepia(14%) saturate(495%) hue-rotate(179deg);
+  opacity: 0.75;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover,
+input[type="month"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}

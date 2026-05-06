@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { CheckIcon, DotsThreeVerticalIcon } from "@phosphor-icons/react";
 import { formatBrl, formatCompactBrl } from "@/lib/chartFormatter";
 import { cn } from "@/lib/cn";
 
@@ -37,14 +38,19 @@ export default function BudgetHealthBar({
   categories,
   totalSpent,
   totalBudget,
+  onBudgetChange,
 }: {
   categories: BudgetCategory[];
   totalSpent: number;
   totalBudget: number;
+  onBudgetChange?: (value: number) => void;
 }) {
-  const [activeIndex, setActiveIndex] = useState(0);
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const [budgetMenuOpen, setBudgetMenuOpen] = useState(false);
+  const [budgetDraft, setBudgetDraft] = useState(String(totalBudget));
   const safeBudget = Math.max(totalBudget, 1);
   const healthPct = Math.min((totalSpent / safeBudget) * 100, 100);
+  const hasData = categories.length > 0 || totalSpent > 0;
   const categoriesSpent = categories.reduce((acc, item) => acc + item.spent, 0);
   const available = Math.max(safeBudget - categoriesSpent, 0);
   const segments = [
@@ -64,10 +70,19 @@ export default function BudgetHealthBar({
       usedPercent: 0,
     },
   ];
-  const safeActiveIndex = Math.min(activeIndex, segments.length - 1);
-  const active = segments[safeActiveIndex];
+  const safeActiveIndex =
+    activeIndex == null ? null : Math.min(activeIndex, segments.length - 1);
+  const active = safeActiveIndex == null ? null : segments[safeActiveIndex];
   const health = getHealthLabel(healthPct);
-  const isAvailable = active.type === "available";
+  const isAvailable = active?.type === "available";
+
+  const saveBudget = (value: string) => {
+    const parsed = Number(value.replace(/\./g, "").replace(",", "."));
+    if (Number.isFinite(parsed) && parsed > 0) {
+      onBudgetChange?.(parsed);
+      setBudgetMenuOpen(false);
+    }
+  };
 
   return (
     <div className="bg-surface/50 p-5 rounded-2xl border border-border-default flex flex-col gap-4">
@@ -86,6 +101,48 @@ export default function BudgetHealthBar({
           <span className={cn("text-sm font-semibold", health.color)}>
             {health.text}
           </span>
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => {
+                setBudgetDraft(String(totalBudget));
+                setBudgetMenuOpen((open) => !open);
+              }}
+              className="flex h-8 w-8 items-center justify-center rounded-full border border-border-default bg-base/40 text-text-muted transition-colors hover:border-border-active hover:text-text-primary"
+              aria-label="Editar limite mensal"
+            >
+              <DotsThreeVerticalIcon size={18} weight="bold" />
+            </button>
+
+            {budgetMenuOpen && (
+              <div className="absolute right-0 top-10 z-40 w-64 rounded-2xl border border-border-default bg-surface p-3 shadow-2xl shadow-black/30">
+                <p className="text-xs font-bold uppercase tracking-[0.16em] text-text-muted">
+                  Limite mensal
+                </p>
+                <div className="mt-3 flex items-center gap-2 rounded-xl border border-border-default bg-base px-3 py-2 focus-within:border-border-active">
+                  <span className="text-sm font-bold text-text-muted">R$</span>
+                  <input
+                    value={budgetDraft}
+                    onChange={(event) => setBudgetDraft(event.target.value)}
+                    onKeyDown={(event) =>
+                      event.key === "Enter" && saveBudget(budgetDraft)
+                    }
+                    className="w-full bg-transparent text-sm font-bold text-text-primary outline-none"
+                    inputMode="decimal"
+                    aria-label="Novo limite mensal"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => saveBudget(budgetDraft)}
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-purple-500 text-white transition-colors hover:bg-purple-400"
+                    aria-label="Salvar limite"
+                  >
+                    <CheckIcon size={16} weight="bold" />
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -112,6 +169,8 @@ export default function BudgetHealthBar({
                   type="button"
                   onMouseEnter={() => setActiveIndex(index)}
                   onFocus={() => setActiveIndex(index)}
+                  onMouseLeave={() => setActiveIndex(null)}
+                  onBlur={() => setActiveIndex(null)}
                   className={cn(
                     "h-full min-w-2 transition-all duration-200",
                     safeActiveIndex === index && "brightness-125",
@@ -125,13 +184,14 @@ export default function BudgetHealthBar({
               ))}
             </div>
 
-            <div
+            {active && safeActiveIndex != null && (
+              <div
               className="pointer-events-none absolute top-11 z-10 w-40 rounded-lg border border-border-default bg-base/95 px-2.5 py-2 text-xs shadow-xl shadow-black/30"
               style={{
                 left: `${getTooltipLeft(segments, safeActiveIndex)}%`,
                 transform: getTooltipTransform(segments.length, safeActiveIndex),
               }}
-            >
+              >
               <div className="mb-1 flex items-center justify-between gap-2">
                 <span className="flex min-w-0 items-center gap-2 text-text-secondary">
                   <span
@@ -152,7 +212,8 @@ export default function BudgetHealthBar({
                   {Math.round(active.usedPercent)}% da categoria
                 </p>
               )}
-            </div>
+              </div>
+            )}
           </div>
 
           <div className="mt-16 grid grid-cols-3 text-[11px] text-text-muted">
@@ -163,7 +224,14 @@ export default function BudgetHealthBar({
         </div>
 
         <div className="grid min-w-0 grid-cols-1 gap-1.5 sm:grid-cols-2 xl:grid-cols-1 xl:content-center">
-          {categories.map((item, index) => {
+          {!hasData ? (
+            <div className="rounded-xl border border-dashed border-border-default bg-base/20 px-3 py-5 text-center">
+              <p className="text-sm font-semibold text-text-primary">Sem dados</p>
+              <p className="mt-1 text-xs text-text-muted">
+                Cadastre gastos para acompanhar o orçamento por categoria.
+              </p>
+            </div>
+          ) : categories.map((item, index) => {
             const pct = Math.min((item.spent / item.budget) * 100, 100);
             const over = item.spent > item.budget;
 

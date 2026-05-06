@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { XIcon, RepeatIcon, CreditCardIcon } from "@phosphor-icons/react";
 import { cn } from "@/lib/cn";
+import { FancySelect } from "@/components/ui/FancySelect";
 import type { FixedBill, Installment, Recurrence } from "../types";
 
 type Mode = "bill" | "installment";
@@ -179,17 +180,15 @@ export default function AddRecurringModal({
                 value={bill.name}
                 onChange={(v) => setBill((f) => ({ ...f, name: v }))}
               />
-              <Select
+              <SelectField
                 label="Categoria"
                 value={bill.category}
                 onChange={(v) => setBill((f) => ({ ...f, category: v }))}
-              >
-                {CATEGORIES.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </Select>
+                options={CATEGORIES.map((category) => ({
+                  value: category,
+                  label: category,
+                }))}
+              />
               <Input
                 label="Valor (R$)"
                 placeholder="0,00"
@@ -197,19 +196,14 @@ export default function AddRecurringModal({
                 value={bill.amount}
                 onChange={(v) => setBill((f) => ({ ...f, amount: v }))}
               />
-              <Select
+              <SelectField
                 label="Recorrência"
                 value={bill.recurrence}
                 onChange={(v) =>
                   setBill((f) => ({ ...f, recurrence: v as Recurrence }))
                 }
-              >
-                {RECURRENCE_OPTIONS.map((o) => (
-                  <option key={o.value} value={o.value}>
-                    {o.label}
-                  </option>
-                ))}
-              </Select>
+                options={RECURRENCE_OPTIONS}
+              />
               <Input
                 label="Dia do vencimento"
                 placeholder="Ex: 10"
@@ -226,17 +220,15 @@ export default function AddRecurringModal({
                 value={inst.name}
                 onChange={(v) => setInst((f) => ({ ...f, name: v }))}
               />
-              <Select
+              <SelectField
                 label="Categoria"
                 value={inst.category}
                 onChange={(v) => setInst((f) => ({ ...f, category: v }))}
-              >
-                {CATEGORIES.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </Select>
+                options={CATEGORIES.map((category) => ({
+                  value: category,
+                  label: category,
+                }))}
+              />
               <Input
                 label="Valor total (R$)"
                 placeholder="0,00"
@@ -315,28 +307,26 @@ function Input({
   );
 }
 
-function Select({
+function SelectField({
   label,
   value,
   onChange,
-  children,
+  options,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
-  children: React.ReactNode;
+  options: Array<{ value: string; label: string }>;
 }) {
   return (
     <div className="flex flex-col gap-1.5">
       <label className="text-text-muted text-xs font-medium">{label}</label>
-      <select
+      <FancySelect
         value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="bg-base border border-border-default rounded-xl px-3 py-2.5 text-sm text-white outline-none focus:border-border-active transition-colors scheme:dark"
-      >
-        <option value="">Selecione...</option>
-        {children}
-      </select>
+        onChange={onChange}
+        options={options}
+        placeholder="Selecione..."
+      />
     </div>
   );
 }

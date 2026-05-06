@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
 export type OverviewData = {
   metrics: {
@@ -21,17 +21,23 @@ export type OverviewData = {
     totalSpent: number;
     totalBudget: number;
   };
+  period: {
+    month: string;
+    label: string;
+  };
 };
 
-async function fetchOverview() {
-  const response = await fetch("/api/overview");
+async function fetchOverview(month: string) {
+  const response = await fetch(`/api/overview?month=${encodeURIComponent(month)}`);
   if (!response.ok) throw new Error("Falha ao carregar overview");
   return (await response.json()) as OverviewData;
 }
 
-export function useOverViewData() {
+export function useOverViewData(month: string) {
   return useQuery({
-    queryKey: ["overview"],
-    queryFn: fetchOverview,
+    queryKey: ["overview", month],
+    queryFn: () => fetchOverview(month),
+    placeholderData: keepPreviousData,
+    staleTime: 2 * 60_000,
   });
 }

@@ -86,7 +86,9 @@ export default function TransactionsPage() {
     [filter, transactions],
   );
 
-  const handleSave = (t: Omit<Transaction, "id">) => createMutation.mutate(t);
+  const handleSave = async (t: Omit<Transaction, "id">) => {
+    await createMutation.mutateAsync(t);
+  };
 
   const handleAddCategory = (c: string) => {
     setCategories((prev) => [...prev, c]);

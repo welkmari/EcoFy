@@ -1,7 +1,5 @@
-import React from 'react'
+import SettingsPage from "@/features/settings/components/SettingsPage";
 
-export default function olaoi() {
-  return (
-    <div>olaoi</div>
-  )
+export default function Settings() {
+  return <SettingsPage />;
 }

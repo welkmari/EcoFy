@@ -24,7 +24,7 @@ const STATUS_OPTIONS: { value: TransactionStatus; label: string }[] = [
 type Props = {
   open: boolean;
   onClose: () => void;
-  onSave: (t: Omit<Transaction, "id">) => void;
+  onSave: (t: Omit<Transaction, "id">) => Promise<void> | void;
   categories: string[];
   onAddCategory: (c: string) => void;
 };
@@ -58,6 +58,8 @@ export default function TransactionModal({
   const [newCategory, setNewCategory] = useState("");
   const [showNewCategory, setShowNewCategory] = useState(false);
   const [categoryOpen, setCategoryOpen] = useState(false);
+  const [error, setError] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
   const categoryRef = useRef<HTMLDivElement>(null);
 
   const isEntrada = form.type === "entrada";
@@ -67,6 +69,8 @@ export default function TransactionModal({
     setNewCategory("");
     setShowNewCategory(false);
     setCategoryOpen(false);
+    setError("");
+    setIsSaving(false);
     onClose();
   };
 
@@ -93,17 +97,43 @@ export default function TransactionModal({
     setCategoryOpen(false);
   };
 
-  const handleSubmit = () => {
-    if (!form.description || !form.amount || !form.category) return;
-    onSave({
-      description: form.description,
-      category: form.category,
-      date: form.date,
-      type: form.type,
-      amount: parseFloat(form.amount.replace(",", ".")),
-      status: form.status,
-    });
-    handleClose();
+  const parseCurrency = (value: string) => {
+    const normalized = value
+      .trim()
+      .replace(/[^\d,.-]/g, "")
+      .replace(/\.(?=\d{3}(?:\D|$))/g, "")
+      .replace(",", ".");
+
+    return Number.parseFloat(normalized);
+  };
+
+  const amountValue = parseCurrency(form.amount);
+  const canSubmit = Boolean(
+    form.description.trim() &&
+      form.amount.trim() &&
+      form.category &&
+      amountValue > 0,
+  );
+
+  const handleSubmit = async () => {
+    if (!canSubmit || isSaving) return;
+    setError("");
+    setIsSaving(true);
+
+    try {
+      await onSave({
+        description: form.description.trim(),
+        category: form.category,
+        date: form.date,
+        type: form.type,
+        amount: amountValue,
+        status: form.status,
+      });
+      handleClose();
+    } catch {
+      setError("Não consegui salvar essa transação agora.");
+      setIsSaving(false);
+    }
   };
 
   if (!open) return null;
@@ -185,7 +215,8 @@ export default function TransactionModal({
           <Field icon={<CurrencyDollarIcon size={16} />} label="Valor">
             <span className="text-text-muted text-sm shrink-0">R$</span>
             <input
-              type="number"
+              type="text"
+              inputMode="decimal"
               placeholder="0,00"
               value={form.amount}
               onChange={(e) =>
@@ -306,9 +337,15 @@ export default function TransactionModal({
             </div>
           </div>
 
+          {error && (
+            <p className="rounded-xl bg-red-400/10 px-3 py-2 text-sm text-red-300">
+              {error}
+            </p>
+          )}
+
           <button
             onClick={handleSubmit}
-            disabled={!form.description || !form.amount || !form.category}
+            disabled={!canSubmit || isSaving}
             className={cn(
               "w-full py-3 rounded-xl font-bold text-sm transition-all mt-1",
               isEntrada
@@ -317,7 +354,11 @@ export default function TransactionModal({
               "disabled:cursor-not-allowed",
             )}
           >
-            {isEntrada ? "Salvar Entrada" : "Salvar Gasto"}
+            {isSaving
+              ? "Salvando..."
+              : isEntrada
+                ? "Salvar Entrada"
+                : "Salvar Gasto"}
           </button>
         </div>
       </div>

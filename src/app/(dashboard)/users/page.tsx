@@ -1,7 +1,5 @@
-import React from 'react'
+import UserProfilePage from "@/features/users/components/UserProfilePage";
 
-export default function loser() {
-  return (
-    <div>loser</div>
-  )
+export default function UsersPage() {
+  return <UserProfilePage />;
 }

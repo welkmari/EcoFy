@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Plus } from '@phosphor-icons/react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Cofrinho, ModalState } from '@/features/goals/types/cofrinho';
@@ -44,6 +44,15 @@ async function depositGoal({ id, amount }: { id: string; amount: number }) {
 
 export default function GoalsPage() {
   const [modalState, setModalState] = useState<ModalState>({ open: false });
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [goalOrder, setGoalOrder] = useState<string[]>(() => {
+    if (typeof window === 'undefined') return [];
+    try {
+      return JSON.parse(window.localStorage.getItem('ecofy:goal-order') ?? '[]');
+    } catch {
+      return [];
+    }
+  });
   const queryClient = useQueryClient();
 
   const { data: cofrinhos = [], isLoading, isError } = useQuery({
@@ -87,6 +96,32 @@ export default function GoalsPage() {
     });
 
   const totalGuardado = cofrinhos.reduce((acc, c) => acc + c.current, 0);
+  const orderedCofrinhos = useMemo(() => {
+    const order = new Map(goalOrder.map((id, index) => [id, index]));
+    return [...cofrinhos].sort((a, b) => {
+      const aIndex = order.get(a.id) ?? Number.MAX_SAFE_INTEGER;
+      const bIndex = order.get(b.id) ?? Number.MAX_SAFE_INTEGER;
+      return aIndex - bIndex;
+    });
+  }, [cofrinhos, goalOrder]);
+
+  const persistOrder = (ids: string[]) => {
+    setGoalOrder(ids);
+    window.localStorage.setItem('ecofy:goal-order', JSON.stringify(ids));
+  };
+
+  const moveGoal = (targetId: string) => {
+    if (!draggingId || draggingId === targetId) return;
+    const ids = orderedCofrinhos.map((goal) => goal.id);
+    const from = ids.indexOf(draggingId);
+    const to = ids.indexOf(targetId);
+    if (from < 0 || to < 0) return;
+
+    const next = [...ids];
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
+    persistOrder(next);
+  };
 
   return (
     <div className="p-8 max-w-7xl mx-auto">
@@ -127,8 +162,20 @@ export default function GoalsPage() {
             Não consegui carregar seus cofrinhos agora.
           </p>
         )}
-        {cofrinhos.map((cofrinho) => (
-          <Card key={cofrinho.id} {...cofrinho} onDeposit={openDeposit} />
+        {orderedCofrinhos.map((cofrinho) => (
+          <Card
+            key={cofrinho.id}
+            {...cofrinho}
+            onDeposit={openDeposit}
+            isDragging={draggingId === cofrinho.id}
+            dragListeners={{
+              draggable: true,
+              onDragStart: () => setDraggingId(cofrinho.id),
+              onDragOver: (event) => event.preventDefault(),
+              onDrop: () => moveGoal(cofrinho.id),
+              onDragEnd: () => setDraggingId(null),
+            }}
+          />
         ))}
 
         <button

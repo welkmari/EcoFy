@@ -22,7 +22,7 @@ import {
 import Logo from "@/components/layout/Logo";
 import { cn } from "@/lib/cn";
 import { createClient } from "@/lib/supabase/client";
-import Image from "next/image";
+import { getInitials, useUserPreferences } from "@/lib/useUserPreferences";
 
 const NAV_SECTIONS = [
   {
@@ -54,6 +54,7 @@ export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const supabase = createClient();
+  const { preferences } = useUserPreferences();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     home: true,
@@ -219,20 +220,25 @@ export default function Sidebar() {
             pathname === "/users" && "bg-surface ring-1 ring-border-active",
           )}
         >
-          <Image
-            src="https://github.com/welkmari.png"
-            alt="User"
-            width={40}
-            height={40}
-            className="w-10 h-10 rounded-full border-2 border-border-default shrink-0"
-          />
+          {preferences.avatarUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={preferences.avatarUrl}
+              alt={preferences.displayName}
+              className="w-10 h-10 rounded-full border-2 border-border-default object-cover shrink-0"
+            />
+          ) : (
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 border-border-default bg-purple-500/20 text-xs font-black text-purple-200">
+              {getInitials(preferences.displayName)}
+            </span>
+          )}
           {!isCollapsed && (
             <div className="min-w-0">
               <p className="text-sm font-semibold text-text-primary truncate">
-                Maria Roberta
+                {preferences.displayName}
               </p>
               <p className="text-xs text-text-muted truncate">
-                Junior Developer
+                {preferences.role}
               </p>
             </div>
           )}

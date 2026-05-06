@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq, gte, lt } from "drizzle-orm";
 import { requireUser, toNumber } from "@/lib/api-auth";
 import { db } from "@/lib/db";
 import { fixedBills, installments, savingsGoals, transactions } from "@/lib/schema";
@@ -9,12 +9,45 @@ function formatDay(date: string) {
   return date.split("-")[2] ?? date;
 }
 
-export async function GET() {
+function getMonthLabel(month: string) {
+  const [year, monthIndex] = month.split("-").map(Number);
+  const date = new Date(year, (monthIndex || 1) - 1, 1);
+
+  return new Intl.DateTimeFormat("pt-BR", {
+    month: "long",
+    year: "numeric",
+  }).format(date);
+}
+
+function getMonthRange(month: string) {
+  const [year, monthIndex] = month.split("-").map(Number);
+  const start = new Date(year, (monthIndex || 1) - 1, 1);
+  const end = new Date(year, monthIndex || 1, 1);
+
+  return {
+    start: start.toISOString().slice(0, 10),
+    end: end.toISOString().slice(0, 10),
+  };
+}
+
+export async function GET(request: Request) {
   const { user, response } = await requireUser();
   if (response) return response;
+  const currentMonth = new Date().toISOString().slice(0, 7);
+  const month = new URL(request.url).searchParams.get("month") ?? currentMonth;
+  const range = getMonthRange(month);
 
   const [transactionRows, billRows, installmentRows, goalRows] = await Promise.all([
-    db.select().from(transactions).where(eq(transactions.userId, user.id)),
+    db
+      .select()
+      .from(transactions)
+      .where(
+        and(
+          eq(transactions.userId, user.id),
+          gte(transactions.date, range.start),
+          lt(transactions.date, range.end),
+        ),
+      ),
     db.select().from(fixedBills).where(eq(fixedBills.userId, user.id)),
     db.select().from(installments).where(eq(installments.userId, user.id)),
     db.select().from(savingsGoals).where(eq(savingsGoals.userId, user.id)),
@@ -85,6 +118,10 @@ export async function GET() {
       categories: budgetCategories,
       totalSpent: expenses + monthlyBills,
       totalBudget,
+    },
+    period: {
+      month,
+      label: getMonthLabel(month),
     },
     installmentDebt: installmentRows.reduce(
       (sum, item) => sum + toNumber(item.totalAmount) - toNumber(item.paidAmount),

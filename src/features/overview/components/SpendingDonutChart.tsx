@@ -43,6 +43,7 @@ function describeArc(startAngle: number, endAngle: number) {
 export default function SpendingDonutChart({ data }: { data: SpendingPoint[] }) {
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const hasData = data.some((item) => item.value > 0);
   const chartData = data.length
     ? data
     : [{ name: "Sem gastos", value: 1, color: "#1f2937" }];
@@ -60,7 +61,7 @@ export default function SpendingDonutChart({ data }: { data: SpendingPoint[] }) 
       percent: Math.round((item.value / total) * 100),
     };
   });
-  const activeIndex = hoverIndex ?? selectedIndex;
+  const activeIndex = hasData ? hoverIndex ?? selectedIndex : null;
   const active = activeIndex == null ? null : chartData[activeIndex];
 
   return (
@@ -105,9 +106,12 @@ export default function SpendingDonutChart({ data }: { data: SpendingPoint[] }) 
                 stroke={slice.color}
                 strokeWidth={index === activeIndex ? stroke + 2 : stroke}
                 strokeLinecap="round"
-                className="cursor-pointer transition-all duration-200"
-                onMouseEnter={() => setHoverIndex(index)}
-                onClick={() => setSelectedIndex(index)}
+                className={cn(
+                  "transition-all duration-200",
+                  hasData && "cursor-pointer",
+                )}
+                onMouseEnter={() => hasData && setHoverIndex(index)}
+                onClick={() => hasData && setSelectedIndex(index)}
               />
             ))}
 
@@ -116,19 +120,30 @@ export default function SpendingDonutChart({ data }: { data: SpendingPoint[] }) 
 
           <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
             <span className="text-2xl font-black text-text-primary">
-              {activeIndex == null ? "100%" : `${slices[activeIndex].percent}%`}
+              {!hasData
+                ? "0%"
+                : activeIndex == null
+                  ? "100%"
+                  : `${slices[activeIndex].percent}%`}
             </span>
             <span className="max-w-24 truncate text-xs text-text-muted">
-              {active?.name ?? "Total"}
+              {!hasData ? "Sem dados" : active?.name ?? "Total"}
             </span>
             <span className="mt-1 text-xs font-semibold text-text-primary">
-              {formatBrl(active?.value ?? total)}
+              {formatBrl(hasData ? active?.value ?? total : 0)}
             </span>
           </div>
         </div>
 
         <div className="flex min-w-0 flex-col gap-1.5 lg:justify-center">
-          {slices.map((item, index) => (
+          {!hasData ? (
+            <div className="rounded-xl border border-dashed border-border-default bg-base/20 px-3 py-4 text-center">
+              <p className="text-sm font-semibold text-text-primary">Sem dados</p>
+              <p className="mt-1 text-xs text-text-muted">
+                Cadastre um gasto para ver a distribuição por categoria.
+              </p>
+            </div>
+          ) : slices.map((item, index) => (
             <button
               key={item.name}
               type="button"

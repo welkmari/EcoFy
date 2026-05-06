@@ -1,26 +1,57 @@
 'use client';
 
-import { PlusCircle } from '@phosphor-icons/react';
+import { DotsSixVertical, PlusCircle } from '@phosphor-icons/react';
+import type { DragEvent } from 'react';
 import { Cofrinho } from '../types/cofrinho';
+import { cn } from '@/lib/cn';
 
 type Props = Cofrinho & {
   onDeposit: (id: string) => void;
+  isDragging?: boolean;
+  dragListeners?: {
+    draggable: boolean;
+    onDragStart: () => void;
+    onDragOver: (event: DragEvent<HTMLDivElement>) => void;
+    onDrop: () => void;
+    onDragEnd: () => void;
+  };
 };
 
-export default function Card({ id, title, current, total, icon: Icon, onDeposit }: Props) {
+export default function Card({
+  id,
+  title,
+  current,
+  total,
+  icon: Icon,
+  onDeposit,
+  isDragging,
+  dragListeners,
+}: Props) {
   const percentage = Math.min((current / total) * 100, 100);
 
   return (
-    <div className="bg-surface border border-border-default rounded-3xl p-6 hover:border-border-active transition-all group relative overflow-hidden">
+    <div
+      {...dragListeners}
+      className={cn(
+        "bg-surface border border-border-default rounded-3xl p-6 hover:border-border-active transition-all group relative overflow-hidden",
+        dragListeners && "cursor-grab active:cursor-grabbing",
+        isDragging && "opacity-60 scale-[0.98] border-purple-400",
+      )}
+    >
       <div className="absolute -right-10 -top-10 w-32 h-32 bg-purple-500/5 rounded-full blur-3xl group-hover:bg-purple-500/10 transition-all" />
 
       <div className="flex justify-between items-start mb-6">
         <div className="p-4 rounded-2xl bg-base border border-border-default text-cyan-400 group-hover:scale-110 transition-transform">
           <Icon size={28} />
         </div>
-        <div className="text-right">
-          <span className="text-2xl font-black text-text-primary">{percentage.toFixed(0)}%</span>
-          <p className="text-[10px] text-text-muted uppercase tracking-widest">Concluído</p>
+        <div className="flex items-start gap-3">
+          <div className="text-right">
+            <span className="text-2xl font-black text-text-primary">{percentage.toFixed(0)}%</span>
+            <p className="text-[10px] text-text-muted uppercase tracking-widest">Concluído</p>
+          </div>
+          <span className="mt-1 text-text-muted opacity-50 transition-opacity group-hover:opacity-100">
+            <DotsSixVertical size={20} weight="bold" />
+          </span>
         </div>
       </div>
 

@@ -2,47 +2,15 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-
-export type UserPreferences = {
-  displayName: string;
-  role: string;
-  bio: string;
-  location: string;
-  avatarUrl: string;
-  monthlyBudget: number;
-  darkMode: boolean;
-  language: string;
-  currency: string;
-  emailAlerts: boolean;
-  budgetAlerts: boolean;
-};
+import {
+  defaultPreferences,
+  normalizePreferences,
+  sanitizeAvatarUrl,
+  type UserPreferences,
+} from "@/lib/userPreferences";
 
 const STORAGE_KEY = "ecofy:user-preferences";
 const EVENT_NAME = "ecofy:user-preferences-updated";
-
-export const defaultPreferences: UserPreferences = {
-  displayName: "Minha Conta",
-  role: "Usuário EcoFy",
-  bio: "Organizando minhas finanças com clareza.",
-  location: "Brasil",
-  avatarUrl: "",
-  monthlyBudget: 3000,
-  darkMode: true,
-  language: "pt-BR",
-  currency: "BRL",
-  emailAlerts: true,
-  budgetAlerts: true,
-};
-
-function normalizePreferences(value: Partial<UserPreferences> | null | undefined) {
-  return {
-    ...defaultPreferences,
-    ...value,
-    monthlyBudget: Number(value?.monthlyBudget) > 0
-      ? Number(value?.monthlyBudget)
-      : defaultPreferences.monthlyBudget,
-  };
-}
 
 function readLocalPreferences() {
   if (typeof window === "undefined") return defaultPreferences;
@@ -141,8 +109,8 @@ export function useUserPreferences() {
     await supabase.auth.updateUser({
       data: {
         full_name: next.displayName,
-        avatar_url: next.avatarUrl,
-        ecofyPreferences: next,
+        avatar_url: sanitizeAvatarUrl(next.avatarUrl),
+        ecofyPreferences: null,
       },
     });
 

@@ -44,17 +44,17 @@ export default function OverViewPage() {
   };
 
   return (
-    <div className="flex min-h-full flex-col gap-3 p-5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
+    <div className="flex min-h-full flex-col gap-4 px-4 pb-5 pt-1 sm:px-5">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-text-muted">
             Período
           </p>
-          <h2 className="text-lg font-bold capitalize text-text-primary">
+          <h2 className="truncate text-lg font-bold capitalize text-text-primary">
             {data?.period.label ?? "Mês atual"}
           </h2>
         </div>
-        <div className="flex items-center gap-2 rounded-2xl border border-border-default bg-surface/70 p-1.5">
+        <div className="flex w-full items-center gap-2 rounded-2xl border border-border-default bg-surface/70 p-1.5 sm:w-auto">
           <button
             type="button"
             onClick={() => setMonth((current) => shiftMonth(current, -1))}
@@ -67,7 +67,7 @@ export default function OverViewPage() {
             value={month}
             onChange={setMonth}
             options={getMonthOptions()}
-            className="w-40"
+            className="min-w-0 flex-1 sm:w-40 sm:flex-none"
           />
           <button
             type="button"
@@ -87,7 +87,7 @@ export default function OverViewPage() {
           Não consegui carregar o overview agora.
         </p>
       )}
-      <div className="grid grid-cols-1 gap-3 shrink-0 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid shrink-0 grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard
           variant="ganhos"
           value={formatBrl(metrics.income)}
@@ -118,7 +118,7 @@ export default function OverViewPage() {
         />
       </div>
 
-      <div className="grid flex-1 min-h-[320px] grid-cols-1 gap-3 xl:grid-cols-[minmax(0,2fr)_minmax(300px,1fr)]">
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(300px,1fr)]">
         <div className="min-w-0">
           <MonthlyFlowChart data={data?.flow ?? []} periodLabel={data?.period.label} />
         </div>

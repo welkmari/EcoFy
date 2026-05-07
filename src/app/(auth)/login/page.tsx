@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import type { FormEvent } from "react";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -18,6 +19,7 @@ import {
 import { useRouter } from "next/navigation";
 import Logo from "@/components/layout/Logo";
 import { createClient } from "@/lib/supabase/client";
+import { getCompactUserMetadata } from "@/lib/userPreferences";
 
 const loginSchema = z.object({
   email: z.string().email("E-mail inválido"),
@@ -43,6 +45,17 @@ export default function LoginPage() {
     resolver: zodResolver(loginSchema),
   });
 
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("error") === "invalid") {
+        setAuthError("E-mail ou senha incorretos.");
+      }
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
+
   const onSubmit = async (data: LoginForm) => {
     setAuthError(null);
 
@@ -56,8 +69,24 @@ export default function LoginPage() {
       return;
     }
 
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (user) {
+      await supabase.auth.updateUser({
+        data: getCompactUserMetadata(user.user_metadata, user.email ?? data.email),
+      });
+      await supabase.auth.refreshSession();
+    }
+
     router.replace("/overview");
     router.refresh();
+  };
+
+  const handleLoginSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    void handleSubmit(onSubmit)(event);
   };
 
   const handleResetPassword = async () => {
@@ -100,7 +129,13 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+        <form
+          action="/api/auth/login"
+          method="post"
+          noValidate
+          onSubmit={handleLoginSubmit}
+          className="space-y-5"
+        >
           <div className="space-y-2">
             <label className="text-sm text-text-secondary ml-1">E-mail</label>
             <div className="relative group">
@@ -108,6 +143,7 @@ export default function LoginPage() {
               <input
                 {...register("email")}
                 type="email"
+                autoComplete="email"
                 placeholder="seu@email.com"
                 className="w-full bg-surface border border-border-default rounded-xl py-3 pl-11 pr-4 text-text-primary text-sm focus:ring-2 focus:ring-border-active focus:border-purple-500 outline-none transition-all placeholder:text-text-muted"
               />
@@ -136,6 +172,7 @@ export default function LoginPage() {
               <input
                 {...register("password")}
                 type={showPassword ? "text" : "password"}
+                autoComplete="current-password"
                 placeholder="••••••••"
                 className="w-full bg-surface border border-border-default rounded-xl py-3 pl-11 pr-12 text-text-primary text-sm focus:ring-2 focus:ring-border-active focus:border-purple-500 outline-none transition-all placeholder:text-text-muted"
               />

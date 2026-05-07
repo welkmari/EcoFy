@@ -22,15 +22,15 @@ export default function Header({
   const firstName = name.split(" ")[0] || "tudo certo";
 
   return (
-    <header className="flex items-center justify-between w-full px-10 pt-12 pb-5 bg-base">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-text-primary font-black text-3xl tracking-tight">
+    <header className="flex w-full flex-col gap-4 bg-base px-4 pb-4 pt-6 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-10 lg:pt-12">
+      <div className="flex min-w-0 flex-col gap-1">
+        <h1 className="truncate text-2xl font-black tracking-tight text-text-primary sm:text-3xl">
           Bem-Vindo(a), {firstName}!
         </h1>
-        <p className="text-purple-400/80 text-sm font-medium">{role}</p>
+        <p className="text-sm font-medium text-purple-400/80">{role}</p>
       </div>
 
-      <div className="flex items-center gap-5">
+      <div className="flex items-center justify-between gap-3 sm:justify-end lg:gap-5">
         <button className="relative w-11 h-11 flex items-center justify-center rounded-2xl bg-surface text-text-secondary hover:text-purple-400 hover:bg-surface transition-all shadow-sm">
           <BellIcon size={22} />
           <span className="absolute top-3 right-3 w-2.5 h-2.5 bg-purple-500 rounded-full border-2 border-surface" />

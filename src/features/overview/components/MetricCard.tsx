@@ -61,22 +61,24 @@ export default function MetricCard({
   return (
     <div
       className={cn(
-        "bg-surface/50 p-6 rounded-2xl border border-gray-800 flex flex-col gap-4 flex-1 min-w-0",
+        "flex min-w-0 flex-1 flex-col gap-3 rounded-2xl border border-gray-800 bg-surface/50 p-4 sm:gap-4 sm:p-5 xl:p-6",
         className,
       )}
     >
-      <div className="flex justify-between items-start">
-        <div>
-          <h2 className="text-white text-3xl font-bold">{value}</h2>
-          <p className="text-gray-400 text-sm">{label}</p>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h2 className="truncate text-xl font-bold text-white sm:text-2xl xl:text-3xl">
+            {value}
+          </h2>
+          <p className="text-sm text-gray-400">{label}</p>
         </div>
-        <div className={cn("p-2 rounded-xl", bg, color)}>
-          <Icon size={24} />
+        <div className={cn("shrink-0 rounded-xl p-2", bg, color)}>
+          <Icon size={22} />
         </div>
       </div>
 
-      <div className="flex items-center gap-2 text-sm">
-        <span className={cn("flex items-center", color)}>
+      <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-sm">
+        <span className={cn("flex items-center font-semibold", color)}>
           {isUp ? (
             <ArrowUpRightIcon size={16} />
           ) : (
@@ -84,7 +86,7 @@ export default function MetricCard({
           )}
           {change}
         </span>
-        <span className="text-gray-500">{percentage} this week</span>
+        <span className="text-gray-500">{percentage}</span>
       </div>
     </div>
   );

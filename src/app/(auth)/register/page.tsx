@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import type { FormEvent } from "react";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -17,6 +18,7 @@ import {
 import { useRouter } from "next/navigation";
 import Logo from "@/components/layout/Logo";
 import { createClient } from "@/lib/supabase/client";
+import { getCompactUserMetadata } from "@/lib/userPreferences";
 
 const registerSchema = z
   .object({
@@ -47,6 +49,22 @@ export default function RegisterPage() {
     resolver: zodResolver(registerSchema),
   });
 
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => {
+      const params = new URLSearchParams(window.location.search);
+
+      if (params.get("sent") === "1") {
+        setSentTo("seu e-mail");
+      }
+
+      if (params.has("error")) {
+        setAuthError("Não consegui criar sua conta agora. Tenta de novo em instantes.");
+      }
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
+
   const onSubmit = async (data: RegisterForm) => {
     setAuthError(null);
 
@@ -65,12 +83,26 @@ export default function RegisterPage() {
     }
 
     if (signUpData.session) {
+      if (signUpData.user) {
+        await supabase.auth.updateUser({
+          data: getCompactUserMetadata(
+            signUpData.user.user_metadata,
+            signUpData.user.email ?? data.email,
+          ),
+        });
+        await supabase.auth.refreshSession();
+      }
       router.replace("/overview");
       router.refresh();
       return;
     }
 
     setSentTo(data.email);
+  };
+
+  const handleRegisterSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    void handleSubmit(onSubmit)(event);
   };
 
   return (
@@ -107,7 +139,13 @@ export default function RegisterPage() {
             </button>
           </div>
         ) : (
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+          <form
+            action="/api/auth/register"
+            method="post"
+            noValidate
+            onSubmit={handleRegisterSubmit}
+            className="space-y-5"
+          >
             <div className="space-y-2">
               <label className="text-sm text-text-secondary ml-1">E-mail</label>
               <div className="relative group">
@@ -115,6 +153,7 @@ export default function RegisterPage() {
                 <input
                   {...register("email")}
                   type="email"
+                  autoComplete="email"
                   placeholder="seu@email.com"
                   className="w-full bg-surface border border-border-default rounded-xl py-3 pl-11 pr-4 text-text-primary text-sm focus:ring-2 focus:ring-border-active focus:border-purple-500 outline-none transition-all placeholder:text-text-muted"
                 />
@@ -133,6 +172,7 @@ export default function RegisterPage() {
                 <input
                   {...register("password")}
                   type={showPassword ? "text" : "password"}
+                  autoComplete="new-password"
                   placeholder="••••••••"
                   className="w-full bg-surface border border-border-default rounded-xl py-3 pl-11 pr-12 text-text-primary text-sm focus:ring-2 focus:ring-border-active focus:border-purple-500 outline-none transition-all placeholder:text-text-muted"
                 />
@@ -160,6 +200,7 @@ export default function RegisterPage() {
                 <input
                   {...register("confirmPassword")}
                   type={showConfirmPassword ? "text" : "password"}
+                  autoComplete="new-password"
                   placeholder="••••••••"
                   className="w-full bg-surface border border-border-default rounded-xl py-3 pl-11 pr-12 text-text-primary text-sm focus:ring-2 focus:ring-border-active focus:border-purple-500 outline-none transition-all placeholder:text-text-muted"
                 />

@@ -1,7 +1,5 @@
-import React from 'react'
+import PricePage from '@/features/price-plains/components/PricePage';
 
-export default function burges() {
-  return (
-    <div>burges</div>
-  )
+export default function Burges() {
+  return <PricePage />;
 }

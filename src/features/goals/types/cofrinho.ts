@@ -13,4 +13,6 @@ export type Cofrinho = {
 export type ModalState =
   | { open: false }
   | { open: true; mode: 'deposit'; cofrinhoId: string }
-  | { open: true; mode: 'create' };
+  | { open: true; mode: 'create' }
+  | { open: true; mode: 'edit'; cofrinhoId: string }
+  | { open: true; mode: 'delete'; cofrinhoId: string };

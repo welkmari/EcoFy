@@ -1,12 +1,14 @@
 'use client';
 
-import { DotsSixVertical, PlusCircle } from '@phosphor-icons/react';
+import { DotsSixVertical, PlusCircle, PencilSimple, Trash } from '@phosphor-icons/react';
 import type { DragEvent } from 'react';
 import { Cofrinho } from '../types/cofrinho';
 import { cn } from '@/lib/cn';
 
 type Props = Cofrinho & {
   onDeposit: (id: string) => void;
+  onEdit: (id: string) => void;
+  onDelete: (id: string) => void;
   isDragging?: boolean;
   dragListeners?: {
     draggable: boolean;
@@ -24,6 +26,8 @@ export default function Card({
   total,
   icon: Icon,
   onDeposit,
+  onEdit,
+  onDelete,
   isDragging,
   dragListeners,
 }: Props) {
@@ -44,7 +48,23 @@ export default function Card({
         <div className="p-4 rounded-2xl bg-base border border-border-default text-cyan-400 group-hover:scale-110 transition-transform">
           <Icon size={28} />
         </div>
-        <div className="flex items-start gap-3">
+        <div className="flex items-center gap-2">
+          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button
+              onClick={(e) => { e.stopPropagation(); onEdit(id); }}
+              className="p-2 rounded-xl text-text-muted hover:text-purple-400 hover:bg-purple-500/10 transition-all"
+              title="Editar cofrinho"
+            >
+              <PencilSimple size={16} weight="bold" />
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); onDelete(id); }}
+              className="p-2 rounded-xl text-text-muted hover:text-red-400 hover:bg-red-500/10 transition-all"
+              title="Excluir cofrinho"
+            >
+              <Trash size={16} weight="bold" />
+            </button>
+          </div>
           <div className="text-right">
             <span className="text-2xl font-black text-text-primary">{percentage.toFixed(0)}%</span>
             <p className="text-[10px] text-text-muted uppercase tracking-widest">Concluído</p>

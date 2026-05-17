@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { X, CheckCircle, Target } from '@phosphor-icons/react';
+import { X, CheckCircle, Target, Warning } from '@phosphor-icons/react';
 import { Cofrinho, ModalState } from '../types/cofrinho';
 import type { CofrinhoIconKey } from '../icons';
 import CofrinhoIconPicker from './iconPicker';
@@ -11,6 +11,8 @@ type Props = {
   cofrinhos: Cofrinho[];
   onDeposit: (id: string, amount: number) => void;
   onCreate: (data: Omit<Cofrinho, 'id'>) => void;
+  onEdit: (id: string, data: Partial<Omit<Cofrinho, 'id'>>) => void;
+  onDelete: (id: string) => void;
   onClose: () => void;
 };
 
@@ -208,13 +210,157 @@ function CreateMode({
   );
 }
 
-export default function CofrinhoModal({ state, cofrinhos, onDeposit, onCreate, onClose }: Props) {
+function EditMode({
+  cofrinho,
+  onEdit,
+  onClose,
+}: {
+  cofrinho: Cofrinho;
+  onEdit: (id: string, data: Partial<Omit<Cofrinho, 'id'>>) => void;
+  onClose: () => void;
+}) {
+  const [title, setTitle] = useState(cofrinho.title);
+  const [total, setTotal] = useState(String(cofrinho.total));
+  const [current, setCurrent] = useState(String(cofrinho.current));
+  const [iconKey, setIconKey] = useState<CofrinhoIconKey>(cofrinho.iconKey);
+
+  const handleConfirm = () => {
+    const totalNum = parseFloat(total.replace(',', '.'));
+    const currentNum = parseFloat(current.replace(',', '.')) || 0;
+    if (!title.trim() || !totalNum || totalNum <= 0) return;
+    onEdit(cofrinho.id, {
+      title: title.trim(),
+      total: totalNum,
+      current: currentNum,
+      iconKey,
+    });
+    onClose();
+  };
+
+  return (
+    <div className="flex flex-col gap-5">
+      <div>
+        <p className="text-xs text-text-muted uppercase tracking-widest mb-2">Nome da meta</p>
+        <input
+          autoFocus
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          className="w-full bg-base border border-border-default focus:border-border-active rounded-xl px-4 py-3 text-text-primary font-bold outline-none placeholder:text-text-muted transition-colors"
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <p className="text-xs text-text-muted uppercase tracking-widest mb-2">Valor alvo</p>
+          <div className="flex items-center gap-2 bg-base border border-border-default focus-within:border-border-active rounded-xl px-3 py-3 transition-colors">
+            <span className="text-text-muted text-sm font-bold">R$</span>
+            <input
+              type="number"
+              min="0"
+              value={total}
+              onChange={(e) => setTotal(e.target.value)}
+              className="bg-transparent text-text-primary font-bold w-full outline-none placeholder:text-text-muted text-sm"
+            />
+          </div>
+        </div>
+        <div>
+          <p className="text-xs text-text-muted uppercase tracking-widest mb-2">Valor atual</p>
+          <div className="flex items-center gap-2 bg-base border border-border-default focus-within:border-border-active rounded-xl px-3 py-3 transition-colors">
+            <span className="text-text-muted text-sm font-bold">R$</span>
+            <input
+              type="number"
+              min="0"
+              value={current}
+              onChange={(e) => setCurrent(e.target.value)}
+              className="bg-transparent text-text-primary font-bold w-full outline-none placeholder:text-text-muted text-sm"
+            />
+          </div>
+        </div>
+      </div>
+
+      <CofrinhoIconPicker selected={iconKey} onChange={setIconKey} />
+
+      <div className="flex gap-3 pt-2">
+        <button
+          onClick={onClose}
+          className="flex-1 py-3 rounded-xl border border-border-default text-text-muted hover:text-text-primary hover:border-purple-500/30 font-bold text-sm transition-all"
+        >
+          Cancelar
+        </button>
+        <button
+          onClick={handleConfirm}
+          disabled={!title.trim() || !total || parseFloat(total) <= 0}
+          className="flex-1 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-cyan-500 text-white font-bold text-sm hover:opacity-90 disabled:opacity-30 disabled:cursor-not-allowed transition-all active:scale-95"
+        >
+          Salvar Alterações
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function DeleteMode({
+  cofrinho,
+  onDelete,
+  onClose,
+}: {
+  cofrinho: Cofrinho;
+  onDelete: (id: string) => void;
+  onClose: () => void;
+}) {
+  const handleConfirm = () => {
+    onDelete(cofrinho.id);
+    onClose();
+  };
+
+  return (
+    <div className="flex flex-col items-center gap-6 py-2">
+      <div className="p-4 rounded-2xl bg-red-500/10 text-red-400">
+        <Warning size={40} weight="fill" />
+      </div>
+      <div className="text-center">
+        <p className="text-text-primary font-bold text-lg mb-1">Excluir"{cofrinho.title}"?</p>
+        <p className="text-text-secondary text-sm">
+          Essa ação é irreversível. Todo o progresso de{' '}
+          <span className="text-text-primary font-bold">
+            R$ {cofrinho.current.toLocaleString('pt-BR')}
+          </span>{' '}
+          será perdido.
+        </p>
+      </div>
+      <div className="flex gap-3 w-full">
+        <button
+          onClick={onClose}
+          className="flex-1 py-3 rounded-xl border border-border-default text-text-muted hover:text-text-primary hover:border-purple-500/30 font-bold text-sm transition-all"
+        >
+          Cancelar
+        </button>
+        <button
+          onClick={handleConfirm}
+          className="flex-1 py-3 rounded-xl bg-gradient-to-r from-red-600 to-red-500 text-white font-bold text-sm hover:opacity-90 transition-all active:scale-95"
+        >
+          Sim, excluir
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export default function CofrinhoModal({ state, cofrinhos, onDeposit, onCreate, onEdit, onDelete, onClose }: Props) {
   if (!state.open) return null;
 
   const cofrinho =
-    state.mode === 'deposit'
+    (state.mode === 'deposit' || state.mode === 'edit' || state.mode === 'delete')
       ? cofrinhos.find((c) => c.id === state.cofrinhoId)
       : null;
+
+  const titleMap: Record<string, string> = {
+    deposit: 'Fazer Depósito',
+    create: 'Novo Cofrinho',
+    edit: 'Editar Cofrinho',
+    delete: 'Excluir Cofrinho',
+  };
 
   return (
     <div
@@ -226,7 +372,7 @@ export default function CofrinhoModal({ state, cofrinhos, onDeposit, onCreate, o
       <div className="relative w-full max-w-md bg-surface border border-border-default rounded-3xl p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-text-primary font-black text-xl">
-            {state.mode === 'deposit' ? 'Fazer Depósito' : 'Novo Cofrinho'}
+            {titleMap[state.mode]}
           </h2>
           <button
             onClick={onClose}
@@ -236,11 +382,18 @@ export default function CofrinhoModal({ state, cofrinhos, onDeposit, onCreate, o
           </button>
         </div>
 
-        {state.mode === 'deposit' && cofrinho ? (
+        {state.mode === 'deposit' && cofrinho && (
           <DepositMode cofrinho={cofrinho} onDeposit={onDeposit} onClose={onClose} />
-        ) : state.mode === 'create' ? (
+        )}
+        {state.mode === 'create' && (
           <CreateMode onCreate={onCreate} onClose={onClose} />
-        ) : null}
+        )}
+        {state.mode === 'edit' && cofrinho && (
+          <EditMode cofrinho={cofrinho} onEdit={onEdit} onClose={onClose} />
+        )}
+        {state.mode === 'delete' && cofrinho && (
+          <DeleteMode cofrinho={cofrinho} onDelete={onDelete} onClose={onClose} />
+        )}
       </div>
     </div>
   );

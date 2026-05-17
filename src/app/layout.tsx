@@ -4,6 +4,9 @@ import Providers from "@/components/providers";
 
 export const metadata: Metadata = {
   title: "Ecofy",
+  icons: {
+    icon: "/image.png",
+  },
 };
 
 export default function RootLayout({

@@ -31,11 +31,10 @@ export async function proxy(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
   const publicAuthPaths = ["/login", "/register", "/auth/callback", "/api/auth"];
-  const isPublicAuthPath = publicAuthPaths.some((path) =>
-    pathname.startsWith(path),
-  );
+  const isPublicAuthPath =
+    pathname === "/" || publicAuthPaths.some((path) => pathname.startsWith(path));
 
-  if (isPublicAuthPath && user) {
+  if (isPublicAuthPath && user && pathname !== "/") {
     return NextResponse.redirect(new URL("/overview", request.url));
   }
 

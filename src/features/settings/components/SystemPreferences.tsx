@@ -2,14 +2,14 @@
 
 import { MonitorIcon, SunIcon, MoonIcon } from "@phosphor-icons/react";
 import { cn } from "@/lib/cn";
-import type { Theme } from "@/lib/useUserPreferences";
+import type { ThemePreference } from "@/lib/userPreferences";
 
 type Props = {
-  value: Theme;
-  onChange: (theme: Theme) => void;
+  value: ThemePreference;
+  onChange: (theme: ThemePreference) => void;
 };
 
-const options: { value: Theme; label: string; icon: React.ElementType }[] = [
+const options: { value: ThemePreference; label: string; icon: React.ElementType }[] = [
   { value: "light", label: "Claro", icon: SunIcon },
   { value: "dark", label: "Escuro", icon: MoonIcon },
   { value: "system", label: "Sistema", icon: MonitorIcon },

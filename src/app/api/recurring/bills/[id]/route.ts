@@ -45,3 +45,18 @@ export async function PATCH(
 
   return Response.json(serialize(updated));
 }
+
+export async function DELETE(
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const { user, response } = await requireUser();
+  if (response) return response;
+
+  const { id } = await params;
+  await db
+    .delete(fixedBills)
+    .where(and(eq(fixedBills.id, id), eq(fixedBills.userId, user.id)));
+
+  return Response.json({ ok: true });
+}

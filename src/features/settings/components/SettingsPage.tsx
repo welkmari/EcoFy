@@ -6,8 +6,10 @@ import {
   CheckCircleIcon,
   DatabaseIcon,
   DownloadSimpleIcon,
+  FilePdfIcon,
   GearSixIcon,
   LockIcon,
+  UploadSimpleIcon,
   ShieldCheckIcon,
   TranslateIcon,
   WalletIcon,
@@ -26,7 +28,8 @@ export default function SettingsPage() {
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
-    setDraft(preferences);
+    const frame = window.requestAnimationFrame(() => setDraft(preferences));
+    return () => window.cancelAnimationFrame(frame);
   }, [preferences]);
 
   const isDirty = JSON.stringify(draft) !== JSON.stringify(preferences);
@@ -53,22 +56,25 @@ export default function SettingsPage() {
   return (
     <main className="h-full overflow-y-auto scrollbar-hide p-4 sm:p-8">
       <div className="mx-auto flex max-w-5xl flex-col gap-7">
-
         <header className="flex flex-wrap items-end justify-between gap-4">
           <div className="flex items-center gap-3">
             <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-purple-400/25 bg-purple-500/10 text-purple-300">
               <GearSixIcon size={24} />
             </span>
             <div>
-              <h1 className="text-3xl font-black text-text-primary">Configurações</h1>
-              <p className="mt-1 text-sm text-text-muted">Ajustes essenciais da sua conta.</p>
+              <h1 className="text-3xl font-black text-text-primary">
+                Configurações
+              </h1>
+              <p className="mt-1 text-sm text-text-muted">
+                Ajustes essenciais da sua conta.
+              </p>
             </div>
           </div>
           <SettingsNav active={activeTab} onChange={setActiveTab} />
         </header>
 
         {saved && (
-          <div className="flex items-center gap-2 rounded-xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-300">
+          <div className="flex items-center gap-2 rounded-xl border border-cyan-400/20 bg-cyan-400/10 px-4 py-3 text-sm text-cyan-300">
             <CheckCircleIcon size={18} weight="fill" />
             Alterações salvas com sucesso.
           </div>
@@ -90,10 +96,12 @@ export default function SettingsPage() {
                 control={
                   <FancySelect
                     value={draft.language}
-                    onChange={(language) => setDraft((prev) => ({ ...prev, language }))}
+                    onChange={(language) =>
+                      setDraft((prev) => ({ ...prev, language }))
+                    }
                     options={[
-                      { value: "pt-BR", label: "Português" },
-                      { value: "en-US", label: "English" },
+                      { value: "pt-BR", label: new Intl.DisplayNames(["pt-BR"], { type: "language" }).of("pt-BR") ?? "Português" },
+                      { value: "en-US", label: new Intl.DisplayNames(["pt-BR"], { type: "language" }).of("en-US") ?? "English" },
                     ]}
                   />
                 }
@@ -105,7 +113,9 @@ export default function SettingsPage() {
                 control={
                   <FancySelect
                     value={draft.currency}
-                    onChange={(currency) => setDraft((prev) => ({ ...prev, currency }))}
+                    onChange={(currency) =>
+                      setDraft((prev) => ({ ...prev, currency }))
+                    }
                     options={[
                       { value: "BRL", label: "BRL" },
                       { value: "USD", label: "USD" },
@@ -121,7 +131,61 @@ export default function SettingsPage() {
                 control={
                   <Toggle
                     checked={draft.budgetAlerts}
-                    onChange={(budgetAlerts) => setDraft((prev) => ({ ...prev, budgetAlerts }))}
+                    onChange={(budgetAlerts) =>
+                      setDraft((prev) => ({ ...prev, budgetAlerts }))
+                    }
+                  />
+                }
+              />
+              <SettingRow
+                icon={<BellIcon size={22} />}
+                title="Contas vencendo"
+                description="Avisar quando uma conta fixa vencer em até 3 dias."
+                control={
+                  <Toggle
+                    checked={draft.fixedBillAlerts}
+                    onChange={(fixedBillAlerts) =>
+                      setDraft((prev) => ({ ...prev, fixedBillAlerts }))
+                    }
+                  />
+                }
+              />
+              <SettingRow
+                icon={<BellIcon size={22} />}
+                title="Metas e cofrinhos"
+                description="Celebrar cofrinhos atingidos e metas concluídas."
+                control={
+                  <Toggle
+                    checked={draft.goalAlerts}
+                    onChange={(goalAlerts) =>
+                      setDraft((prev) => ({ ...prev, goalAlerts }))
+                    }
+                  />
+                }
+              />
+              <SettingRow
+                icon={<BellIcon size={22} />}
+                title="Resumo semanal"
+                description="Resumo no domingo com gastos da semana."
+                control={
+                  <Toggle
+                    checked={draft.weeklySummaryAlerts}
+                    onChange={(weeklySummaryAlerts) =>
+                      setDraft((prev) => ({ ...prev, weeklySummaryAlerts }))
+                    }
+                  />
+                }
+              />
+              <SettingRow
+                icon={<WalletIcon size={22} />}
+                title="Equivalente em moeda secundária"
+                description="Mostrar conversão auxiliar em Transactions e Overview."
+                control={
+                  <Toggle
+                    checked={draft.showConvertedValues}
+                    onChange={(showConvertedValues) =>
+                      setDraft((prev) => ({ ...prev, showConvertedValues }))
+                    }
                   />
                 }
               />
@@ -129,7 +193,13 @@ export default function SettingsPage() {
 
             <SystemPreferences
               value={draft.theme}
-              onChange={(theme) => setDraft((prev) => ({ ...prev, theme, darkMode: theme === "dark" }))}
+              onChange={(theme) =>
+                setDraft((prev) => ({
+                  ...prev,
+                  theme,
+                  darkMode: theme === "dark",
+                }))
+              }
             />
           </div>
         )}
@@ -161,10 +231,24 @@ export default function SettingsPage() {
           <SettingsCard title="Dados">
             <ActionRow
               icon={<DownloadSimpleIcon size={22} />}
-              title="Exportar preferências"
-              description="Baixe seus dados e configurações em JSON."
-              action="Exportar"
+              title="Exportar CSV"
+              description="Baixe uma base tabular para planilhas."
+              action="CSV"
               onClick={handleExport}
+            />
+            <ActionRow
+              icon={<FilePdfIcon size={22} />}
+              title="Exportar PDF"
+              description="Relatório mensal formatado com resumo e tabelas."
+              action="PDF"
+              onClick={() => alert("Conecte este botão ao gerador de relatório PDF.")}
+            />
+            <ActionRow
+              icon={<UploadSimpleIcon size={22} />}
+              title="Importar planilha"
+              description="Upload de CSV/XLSX com mapeamento de colunas e duplicatas."
+              action="Importar"
+              onClick={() => alert("Conecte este botão ao wizard de importação.")}
             />
             <ActionRow
               icon={<DatabaseIcon size={22} />}
@@ -186,18 +270,23 @@ export default function SettingsPage() {
           <button
             onClick={save}
             disabled={!isDirty}
-            className="rounded-xl bg-gradient-to-r from-purple-500 to-blue-500 px-5 py-2.5 text-sm font-black text-white shadow-lg shadow-purple-500/15 transition-opacity hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
+            className="rounded-xl bg-linear-to-r from-purple-500 to-blue-500 px-5 py-2.5 text-sm font-black text-white shadow-lg shadow-purple-500/15 transition-opacity hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             Salvar Alterações
           </button>
         </div>
-
       </div>
     </main>
   );
 }
 
-function SettingsCard({ title, children }: { title: string; children: React.ReactNode }) {
+function SettingsCard({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
   return (
     <section className="overflow-hidden rounded-2xl border border-border-default bg-surface/50">
       <div className="border-b border-border-default px-6 py-5">
@@ -254,7 +343,9 @@ function ActionRow({
     <div
       className={cn(
         "m-4 flex flex-wrap items-center justify-between gap-4 rounded-xl border p-4",
-        featured ? "border-purple-500/30 bg-purple-500/10" : "border-border-default bg-base/35",
+        featured
+          ? "border-purple-500/30 bg-purple-500/10"
+          : "border-border-default bg-base/35",
       )}
     >
       <div className="flex min-w-0 items-center gap-4">
@@ -287,7 +378,9 @@ function Toggle({
       onClick={() => onChange(!checked)}
       className={cn(
         "relative h-7 w-12 rounded-full border p-0.5 transition-colors",
-        checked ? "border-purple-400/50 bg-purple-500/80" : "border-border-default bg-base",
+        checked
+          ? "border-purple-400/50 bg-purple-500/80"
+          : "border-border-default bg-base",
       )}
       aria-pressed={checked}
     >

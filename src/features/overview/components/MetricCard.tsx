@@ -14,14 +14,14 @@ const VARIANT_CONFIG = {
   ganhos: {
     icon: TrendUpIcon,
     label: "Ganhos totais",
-    color: "text-emerald-400",
-    bg: "bg-emerald-400/10",
+    color: "text-cyan-400",
+    bg: "bg-cyan-400/10",
   },
   saidas: {
     icon: TrendDownIcon,
     label: "Saídas totais",
-    color: "text-rose-400",
-    bg: "bg-rose-400/10",
+    color: "text-red-400",
+    bg: "bg-red-400/10",
   },
   contas: {
     icon: ReceiptIcon,

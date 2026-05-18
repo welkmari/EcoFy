@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { RepeatIcon, PlusIcon } from "@phosphor-icons/react";
+import { RepeatIcon, PlusIcon, TrophyIcon } from "@phosphor-icons/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/cn";
+import { useToast } from "@/components/feedback/ToastProvider";
 import type { BillStatus, FixedBill, Installment } from "../types";
 import SummaryBar from "./SummaryBar";
 import BillCard from "./BillCard";
@@ -15,10 +16,10 @@ type BillFilter = "all" | BillStatus;
 type ToastState = { billId: string; previousStatus: BillStatus } | null;
 
 const BILL_FILTERS: { value: BillFilter; label: string }[] = [
-  { value: "all", label: "All" },
-  { value: "paid", label: "Paid" },
-  { value: "pending", label: "Pending" },
-  { value: "overdue", label: "Overdue" },
+  { value: "all", label: "Todas" },
+  { value: "pending", label: "Pendentes" },
+  { value: "overdue", label: "Vencidas" },
+  { value: "paid", label: "Pagas" },
 ];
 
 type RecurringData = {
@@ -58,6 +59,13 @@ async function updateBillStatus({
   return (await response.json()) as FixedBill;
 }
 
+async function deleteBill(id: string) {
+  const response = await fetch(`/api/recurring/bills/${id}`, {
+    method: "DELETE",
+  });
+  if (!response.ok) throw new Error("Falha ao excluir conta fixa");
+}
+
 async function createInstallment(
   installment: Omit<
     Installment,
@@ -95,7 +103,9 @@ export default function RecurringPage() {
   const [selectedInstallment, setSelectedInstallment] =
     useState<Installment | null>(null);
   const [toast, setToast] = useState<ToastState>(null);
+  const [billToDelete, setBillToDelete] = useState<FixedBill | null>(null);
   const queryClient = useQueryClient();
+  const { showToast } = useToast();
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["recurring"],
@@ -112,12 +122,33 @@ export default function RecurringPage() {
 
   const createBillMutation = useMutation({
     mutationFn: createBill,
-    onSuccess: invalidateRecurring,
+    onSuccess: () => {
+      invalidateRecurring();
+      showToast({ title: "Conta fixa adicionada", type: "success" });
+    },
   });
 
   const billStatusMutation = useMutation({
     mutationFn: updateBillStatus,
-    onSuccess: invalidateRecurring,
+    onSuccess: (updated) => {
+      invalidateRecurring();
+      if (updated.status === "paid") {
+        showToast({
+          title: "Meta concluída",
+          description: `${updated.name} foi marcada como paga.`,
+          type: "success",
+        });
+      }
+    },
+  });
+
+  const deleteBillMutation = useMutation({
+    mutationFn: deleteBill,
+    onSuccess: () => {
+      invalidateRecurring();
+      setBillToDelete(null);
+      showToast({ title: "Conta fixa excluída", type: "success" });
+    },
   });
 
   const createInstallmentMutation = useMutation({
@@ -135,6 +166,11 @@ export default function RecurringPage() {
 
   const filteredBills =
     billFilter === "all" ? bills : bills.filter((b) => b.status === billFilter);
+  const sortedBills = [...filteredBills].sort((a, b) => {
+    const order: Record<BillStatus, number> = { pending: 0, overdue: 1, paid: 2 };
+    return order[a.status] - order[b.status] || a.dueDay - b.dueDay;
+  });
+  const paidCount = bills.filter((bill) => bill.status === "paid").length;
 
   const handleMarkPaid = (id: string) => {
     const bill = bills.find((b) => b.id === id);
@@ -176,9 +212,9 @@ export default function RecurringPage() {
             <RepeatIcon size={22} />
           </div>
           <div>
-            <h1 className="text-white text-2xl font-bold">Recurring</h1>
+            <h1 className="text-white text-2xl font-bold">Contas Fixas</h1>
             <p className="text-text-muted text-sm">
-              Fixed bills and installments in one place.
+              Contas, parcelamentos e conquistas do mês em um só lugar.
             </p>
           </div>
         </div>
@@ -187,14 +223,21 @@ export default function RecurringPage() {
           className="flex items-center gap-2 bg-purple-500 hover:bg-purple-600 text-white font-bold px-4 py-2 rounded-xl text-sm transition-colors"
         >
           <PlusIcon size={16} />
-          Add New
+          Adicionar
         </button>
       </div>
 
       <SummaryBar bills={bills} installments={installments} />
 
       {isLoading && (
-        <p className="text-text-muted text-sm">Carregando recorrentes...</p>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 3 }).map((_, index) => (
+            <div
+              key={index}
+              className="h-44 animate-pulse rounded-2xl border border-border-default bg-surface/60"
+            />
+          ))}
+        </div>
       )}
       {isError && (
         <p className="text-red-400 text-sm">
@@ -204,8 +247,13 @@ export default function RecurringPage() {
 
       {/* Fixed Bills */}
       <section className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-white font-semibold">Fixed Bills</h2>
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h2 className="text-white font-semibold">Pendências do mês</h2>
+            <p className="text-xs text-text-muted">
+              {paidCount} de {bills.length} metas pagas este mês
+            </p>
+          </div>
           <div className="flex items-center gap-2">
             {BILL_FILTERS.map((f) => (
               <button
@@ -223,26 +271,66 @@ export default function RecurringPage() {
             ))}
           </div>
         </div>
+        {bills.length > 0 && (
+        <div className="rounded-2xl border border-border-default bg-surface/50 p-4">
+          <div className="mb-2 flex items-center justify-between gap-3">
+            <span className="flex items-center gap-2 text-sm font-bold text-text-primary">
+              <TrophyIcon size={18} weight="fill" />
+              Suas conquistas
+            </span>
+            <span className="text-xs font-black text-purple-400">
+              {bills.length ? Math.round((paidCount / bills.length) * 100) : 0}%
+            </span>
+          </div>
+          <div className="h-2 overflow-hidden rounded-full bg-base/60">
+            <div
+              className="h-full rounded-full bg-linear-to-r from-purple-600 to-cyan-400 transition-all duration-700"
+              style={{
+                width: `${bills.length ? (paidCount / bills.length) * 100 : 0}%`,
+              }}
+            />
+          </div>
+        </div>
+        )}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredBills.map((bill) => (
+          {sortedBills.map((bill) => (
             <BillCard
               key={bill.id}
               bill={bill}
               onMarkPaid={handleMarkPaid}
               onUndo={handleUndo}
+              onEdit={(item) =>
+                showToast({
+                  title: "Edição rápida",
+                  description: `${item.name} pode ser ajustada no próximo modal de edição.`,
+                  type: "info",
+                })
+              }
+              onDelete={setBillToDelete}
             />
           ))}
-          {filteredBills.length === 0 && (
-            <p className="text-text-muted text-sm col-span-3 py-8 text-center">
-              Nenhuma conta encontrada.
-            </p>
+          {!isLoading && sortedBills.length === 0 && (
+            <div className="col-span-full flex flex-col items-center justify-center rounded-2xl border border-dashed border-border-default bg-surface/30 px-6 py-12 text-center">
+              <p className="text-base font-bold text-text-primary">
+                Nenhuma conta fixa cadastrada ainda.
+              </p>
+              <p className="mt-1 max-w-sm text-sm text-text-muted">
+                Adicione sua primeira para acompanhar vencimentos e conquistas.
+              </p>
+              <button
+                onClick={() => setModalOpen(true)}
+                className="mt-4 rounded-xl bg-purple-500 px-4 py-2 text-sm font-black text-white transition-colors hover:bg-purple-600"
+              >
+                Adicionar primeira conta
+              </button>
+            </div>
           )}
         </div>
       </section>
 
       {/* Installments */}
       <section className="flex flex-col gap-4">
-        <h2 className="text-white font-semibold">Installments</h2>
+        <h2 className="text-white font-semibold">Parcelamentos</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {installments.map((i) => (
             <InstallmentRow
@@ -266,6 +354,39 @@ export default function RecurringPage() {
         onClose={() => setSelectedInstallment(null)}
         onToggleInstallment={handleToggleInstallment}
       />
+
+      {billToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setBillToDelete(null)}
+          />
+          <div className="relative w-full max-w-sm rounded-2xl border border-border-default bg-surface p-5 shadow-2xl">
+            <h3 className="text-lg font-black text-text-primary">
+              Excluir conta fixa?
+            </h3>
+            <p className="mt-2 text-sm text-text-muted">
+              {billToDelete.name} será removida da sua lista de contas fixas.
+            </p>
+            <div className="mt-5 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setBillToDelete(null)}
+                className="rounded-xl px-4 py-2 text-sm font-bold text-text-secondary transition-colors hover:text-text-primary"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => deleteBillMutation.mutate(billToDelete.id)}
+                className="rounded-xl bg-red-500 px-4 py-2 text-sm font-black text-white transition-colors hover:bg-red-400"
+              >
+                Excluir
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

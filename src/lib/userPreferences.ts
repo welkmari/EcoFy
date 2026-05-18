@@ -1,3 +1,6 @@
+export type ThemePreference = "light" | "dark" | "system";
+export type FontScalePreference = "normal" | "large" | "larger";
+
 export type UserPreferences = {
   displayName: string;
   role: string;
@@ -6,10 +9,20 @@ export type UserPreferences = {
   avatarUrl: string;
   monthlyBudget: number;
   darkMode: boolean;
+  theme: ThemePreference;
   language: string;
   currency: string;
+  showConvertedValues: boolean;
+  secondaryCurrency: string;
   emailAlerts: boolean;
   budgetAlerts: boolean;
+  fixedBillAlerts: boolean;
+  goalAlerts: boolean;
+  weeklySummaryAlerts: boolean;
+  fontScale: FontScalePreference;
+  highContrast: boolean;
+  reduceMotion: boolean;
+  increasedSpacing: boolean;
 };
 
 const MAX_PROFILE_TEXT_LENGTH = 240;
@@ -23,15 +36,31 @@ export const defaultPreferences: UserPreferences = {
   avatarUrl: "",
   monthlyBudget: 3000,
   darkMode: true,
+  theme: "dark",
   language: "pt-BR",
   currency: "BRL",
+  showConvertedValues: false,
+  secondaryCurrency: "USD",
   emailAlerts: true,
   budgetAlerts: true,
+  fixedBillAlerts: true,
+  goalAlerts: true,
+  weeklySummaryAlerts: false,
+  fontScale: "normal",
+  highContrast: false,
+  reduceMotion: false,
+  increasedSpacing: false,
 };
 
 export function normalizePreferences(
   value: Partial<UserPreferences> | null | undefined,
 ) {
+  const normalizedTheme = normalizeChoice<ThemePreference>(
+    value?.theme ?? (value?.darkMode === false ? "light" : "dark"),
+    ["light", "dark", "system"],
+    defaultPreferences.theme,
+  );
+
   return {
     ...defaultPreferences,
     ...value,
@@ -44,7 +73,44 @@ export function normalizePreferences(
       Number(value?.monthlyBudget) > 0
         ? Number(value?.monthlyBudget)
         : defaultPreferences.monthlyBudget,
+    theme: normalizedTheme,
+    darkMode: normalizedTheme === "dark",
+    currency: normalizeChoice(
+      value?.currency,
+      ["BRL", "USD", "EUR"],
+      defaultPreferences.currency,
+    ),
+    secondaryCurrency: normalizeChoice(
+      value?.secondaryCurrency,
+      ["USD", "EUR", "BRL"],
+      defaultPreferences.secondaryCurrency,
+    ),
+    fontScale: normalizeChoice(
+      value?.fontScale,
+      ["normal", "large", "larger"],
+      defaultPreferences.fontScale,
+    ),
+    showConvertedValues: Boolean(value?.showConvertedValues),
+    highContrast: Boolean(value?.highContrast),
+    reduceMotion: Boolean(value?.reduceMotion),
+    increasedSpacing: Boolean(value?.increasedSpacing),
+    emailAlerts: value?.emailAlerts ?? defaultPreferences.emailAlerts,
+    budgetAlerts: value?.budgetAlerts ?? defaultPreferences.budgetAlerts,
+    fixedBillAlerts: value?.fixedBillAlerts ?? defaultPreferences.fixedBillAlerts,
+    goalAlerts: value?.goalAlerts ?? defaultPreferences.goalAlerts,
+    weeklySummaryAlerts:
+      value?.weeklySummaryAlerts ?? defaultPreferences.weeklySummaryAlerts,
   };
+}
+
+function normalizeChoice<T extends string>(
+  value: unknown,
+  allowed: readonly T[],
+  fallback: T,
+) {
+  return typeof value === "string" && allowed.includes(value as T)
+    ? (value as T)
+    : fallback;
 }
 
 function limitText(value: unknown, fallback: string, maxLength: number) {

@@ -20,7 +20,7 @@ export function FancySelect({ value, onChange, options }: Props) {
   const handleBlur = () => setTimeout(() => setOpen(false), 150);
 
   return (
-    <div ref={ref} className="relative min-w-[120px]" onBlur={handleBlur}>
+    <div ref={ref} className="relative min-w-30" onBlur={handleBlur}>
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
@@ -29,7 +29,10 @@ export function FancySelect({ value, onChange, options }: Props) {
         <span>{selected?.label ?? value}</span>
         <CaretDownIcon
           size={14}
-          className={cn("text-text-muted transition-transform", open && "rotate-180")}
+          className={cn(
+            "text-text-muted transition-transform",
+            open && "rotate-180",
+          )}
         />
       </button>
 
@@ -39,7 +42,10 @@ export function FancySelect({ value, onChange, options }: Props) {
             <button
               key={opt.value}
               type="button"
-              onClick={() => { onChange(opt.value); setOpen(false); }}
+              onClick={() => {
+                onChange(opt.value);
+                setOpen(false);
+              }}
               className={cn(
                 "flex w-full items-center px-3 py-2 text-sm font-bold transition-colors hover:bg-purple-500/10 hover:text-purple-300",
                 opt.value === value ? "text-purple-400" : "text-text-secondary",

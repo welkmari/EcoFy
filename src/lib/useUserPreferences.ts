@@ -110,7 +110,7 @@ export function useUserPreferences() {
       data: {
         full_name: next.displayName,
         avatar_url: sanitizeAvatarUrl(next.avatarUrl),
-        ecofyPreferences: null,
+        ecofyPreferences: next,
       },
     });
 

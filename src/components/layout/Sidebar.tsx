@@ -14,7 +14,6 @@ import {
   WalletIcon,
   ListIcon,
   CaretLeftIcon,
-  CreditCardIcon,
   LightningIcon,
   TargetIcon,
   UsersIcon,
@@ -267,8 +266,7 @@ function PremiumSection({
   isCollapsed: boolean;
 }) {
   const [open, setOpen] = useState(false);
-  const isPremiumPath =
-    pathname.includes("premium") || pathname.includes("payments");
+  const isPremiumPath = pathname.includes("premium");
 
   return (
     <div
@@ -308,7 +306,6 @@ function PremiumSection({
         <div className="mt-1 space-y-0.5">
           {[
             { href: "/premium", label: "Ver Planos", icon: LightningIcon },
-            { href: "/payments", label: "Pagamentos", icon: CreditCardIcon },
           ].map(({ href, label, icon: Icon }) => {
             const active = pathname === href;
             return (

@@ -25,6 +25,7 @@ type Props = {
   open: boolean;
   onClose: () => void;
   onSave: (t: Omit<Transaction, "id">) => Promise<void> | void;
+  initialTransaction?: Transaction | null;
   categories: string[];
   onAddCategory: (c: string) => void;
 };
@@ -51,6 +52,7 @@ export default function TransactionModal({
   open,
   onClose,
   onSave,
+  initialTransaction,
   categories,
   onAddCategory,
 }: Props) {
@@ -63,6 +65,25 @@ export default function TransactionModal({
   const categoryRef = useRef<HTMLDivElement>(null);
 
   const isEntrada = form.type === "entrada";
+
+  useEffect(() => {
+    if (!open) return;
+    const frame = window.requestAnimationFrame(() => {
+      setForm(
+        initialTransaction
+          ? {
+              type: initialTransaction.type,
+              description: initialTransaction.description,
+              amount: String(initialTransaction.amount),
+              date: initialTransaction.date,
+              status: initialTransaction.status,
+              category: initialTransaction.category,
+            }
+          : EMPTY_FORM,
+      );
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [initialTransaction, open]);
 
   const handleClose = () => {
     setForm(EMPTY_FORM);
@@ -152,7 +173,9 @@ export default function TransactionModal({
 
         <div className="flex items-center justify-between px-6 pt-5 pb-4">
           <div>
-            <h2 className="text-white font-semibold text-lg">Nova Transação</h2>
+            <h2 className="text-white font-semibold text-lg">
+              {initialTransaction ? "Editar Transação" : "Nova Transação"}
+            </h2>
             <p className="text-text-muted text-xs mt-0.5">
               Preencha os dados abaixo
             </p>
@@ -357,8 +380,12 @@ export default function TransactionModal({
             {isSaving
               ? "Salvando..."
               : isEntrada
-                ? "Salvar Entrada"
-                : "Salvar Gasto"}
+                ? initialTransaction
+                  ? "Atualizar Entrada"
+                  : "Salvar Entrada"
+                : initialTransaction
+                  ? "Atualizar Gasto"
+                  : "Salvar Gasto"}
           </button>
         </div>
       </div>

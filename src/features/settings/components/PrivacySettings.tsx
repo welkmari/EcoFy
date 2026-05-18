@@ -54,7 +54,9 @@ export default function PrivacySettings() {
               <EyeIcon size={22} />
             </span>
             <div className="min-w-0">
-              <p className="text-sm font-bold text-text-primary">Análise de uso</p>
+              <p className="text-sm font-bold text-text-primary">
+                Análise de uso
+              </p>
               <p className="mt-0.5 text-sm text-text-muted">
                 Compartilhar dados anônimos para melhorar o produto.
               </p>
@@ -69,7 +71,9 @@ export default function PrivacySettings() {
               <EyeSlashIcon size={22} />
             </span>
             <div className="min-w-0">
-              <p className="text-sm font-bold text-text-primary">Perfil público</p>
+              <p className="text-sm font-bold text-text-primary">
+                Perfil público
+              </p>
               <p className="mt-0.5 text-sm text-text-muted">
                 Permite que outros usuários vejam seu perfil.
               </p>
@@ -107,7 +111,9 @@ export default function PrivacySettings() {
                 Cancelar
               </button>
               <button
-                onClick={() => alert("Conta excluída (integre com seu backend)")}
+                onClick={() =>
+                  alert("Conta excluída (integre com seu backend)")
+                }
                 className="rounded-xl bg-red-500 px-4 py-2 text-sm font-bold text-white transition-opacity hover:opacity-90"
               >
                 Confirmar

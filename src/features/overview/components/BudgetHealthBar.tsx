@@ -13,9 +13,9 @@ type BudgetCategory = {
 };
 
 function getHealthLabel(pct: number) {
-  if (pct < 50) return { text: "Ótimo", color: "text-emerald-400" };
+  if (pct < 50) return { text: "Ótimo", color: "text-cyan-400" };
   if (pct < 75) return { text: "Atenção", color: "text-yellow-400" };
-  return { text: "Crítico", color: "text-rose-400" };
+  return { text: "Crítico", color: "text-red-400" };
 }
 
 function getTooltipLeft(
@@ -261,7 +261,7 @@ export default function BudgetHealthBar({
                   <span
                     className={cn(
                       "shrink-0 text-xs font-bold",
-                      over ? "text-rose-400" : "text-text-primary",
+                      over ? "text-red-400" : "text-text-primary",
                     )}
                   >
                     {Math.round(pct)}%

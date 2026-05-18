@@ -6,7 +6,6 @@ import MetricCard from "./MetricCard";
 import MonthlyFlowChart from "./MonthlyFlowChart";
 import SpendingDonutChart from "./SpendingDonutChart";
 import BudgetHealthBar from "./BudgetHealthBar";
-import { formatBrl } from "@/lib/chartFormatter";
 import { useUserPreferences } from "@/lib/useUserPreferences";
 import { useOverViewData } from "../hooks/useOverViewData";
 import { FancySelect } from "@/components/ui/FancySelect";
@@ -19,8 +18,8 @@ function shiftMonth(month: string, offset: number) {
 
 function getMonthOptions() {
   const base = new Date();
-  return Array.from({ length: 13 }, (_, index) => {
-    const date = new Date(base.getFullYear(), base.getMonth() - index, 1);
+  return Array.from({ length: 19 }, (_, index) => {
+    const date = new Date(base.getFullYear(), base.getMonth() + index - 9, 1);
     const value = date.toISOString().slice(0, 7);
     const label = new Intl.DateTimeFormat("pt-BR", {
       month: "short",
@@ -31,10 +30,22 @@ function getMonthOptions() {
   });
 }
 
+function getPeriodHint(month: string) {
+  const current = new Date().toISOString().slice(0, 7);
+  if (month === current) return "Mês atual";
+  return month > current ? "Planejamento futuro" : "Histórico";
+}
+
 export default function OverViewPage() {
   const [month, setMonth] = useState(() => new Date().toISOString().slice(0, 7));
   const { data, isLoading, isError } = useOverViewData(month);
   const { preferences, savePreferences } = useUserPreferences();
+  const formatMoney = (value: number) =>
+    new Intl.NumberFormat(preferences.language, {
+      style: "currency",
+      currency: preferences.currency,
+      minimumFractionDigits: 2,
+    }).format(Number(value) || 0);
 
   const metrics = data?.metrics ?? {
     income: 0,
@@ -53,6 +64,9 @@ export default function OverViewPage() {
           <h2 className="truncate text-lg font-bold capitalize text-text-primary">
             {data?.period.label ?? "Mês atual"}
           </h2>
+          <p className="mt-1 text-xs font-bold text-purple-400">
+            {getPeriodHint(month)}
+          </p>
         </div>
         <div className="flex w-full items-center gap-2 rounded-2xl border border-border-default bg-surface/70 p-1.5 sm:w-auto">
           <button
@@ -90,28 +104,28 @@ export default function OverViewPage() {
       <div className="grid shrink-0 grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard
           variant="ganhos"
-          value={formatBrl(metrics.income)}
+          value={formatMoney(metrics.income)}
           change="Total"
           percentage="registrado"
           isUp={metrics.income >= 0}
         />
         <MetricCard
           variant="investimentos"
-          value={formatBrl(metrics.investments)}
+          value={formatMoney(metrics.investments)}
           change="Cofrinhos"
           percentage="guardado"
           isUp={metrics.investments >= 0}
         />
         <MetricCard
           variant="saidas"
-          value={formatBrl(metrics.expenses)}
+          value={formatMoney(metrics.expenses)}
           change="Total"
           percentage="em gastos"
           isUp={false}
         />
         <MetricCard
           variant="contas"
-          value={formatBrl(metrics.monthlyBills)}
+          value={formatMoney(metrics.monthlyBills)}
           change="Fixas"
           percentage="mensais"
           isUp={metrics.monthlyBills === 0}

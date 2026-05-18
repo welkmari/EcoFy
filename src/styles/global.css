@@ -26,6 +26,99 @@
   --color-white: #ffffff;
 }
 
+:root {
+  --ecofy-focus: #22d3ee;
+}
+
+.theme-light {
+  --color-base: #f6f8f7;
+  --color-surface: #ffffff;
+  --color-border-default: #d9e2dc;
+  --color-border-active: rgba(13, 148, 136, 0.45);
+  --color-text-primary: #10201b;
+  --color-text-secondary: #40554d;
+  --color-text-muted: #6b7d75;
+}
+
+.a11y-contrast {
+  --color-base: #030712;
+  --color-surface: #0f172a;
+  --color-border-default: #94a3b8;
+  --color-border-active: #facc15;
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #f8fafc;
+  --color-text-muted: #d1d5db;
+  --ecofy-focus: #a78bfa;
+}
+
+[data-font-scale="large"] {
+  font-size: 17px;
+}
+
+[data-font-scale="larger"] {
+  font-size: 18px;
+}
+
+.a11y-spacing {
+  letter-spacing: 0.01em;
+}
+
+.a11y-spacing p,
+.a11y-spacing li,
+.a11y-spacing label {
+  line-height: 1.75;
+}
+
+.a11y-reduce-motion *,
+.a11y-reduce-motion *::before,
+.a11y-reduce-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  scroll-behavior: auto !important;
+  transition-duration: 0.01ms !important;
+}
+
+@keyframes toastIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes floatSlow {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate3d(12px, -18px, 0) rotate(4deg);
+  }
+}
+
+@keyframes revealUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
 .scrollbar-hide {
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -49,4 +142,17 @@ input[type="month"]::-webkit-calendar-picker-indicator {
 input[type="date"]::-webkit-calendar-picker-indicator:hover,
 input[type="month"]::-webkit-calendar-picker-indicator:hover {
   opacity: 1;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  outline-color: var(--ecofy-focus);
+}
+
+:focus-visible {
+  outline: 2px solid var(--ecofy-focus);
+  outline-offset: 2px;
 }

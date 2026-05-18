@@ -33,18 +33,22 @@ function applyTheme(theme: Theme) {
 }
 
 export function useUserPreferences() {
-  const [preferences, setPreferences] = useState<UserPreferences>(DEFAULT_PREFERENCES);
+  const [preferences, setPreferences] = useState<UserPreferences>(() => {
+    if (typeof window === "undefined") return DEFAULT_PREFERENCES;
 
-  useEffect(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const parsed: UserPreferences = { ...DEFAULT_PREFERENCES, ...JSON.parse(stored) };
-        setPreferences(parsed);
-        applyTheme(parsed.theme);
-      }
-    } catch {}
-  }, []);
+      return stored
+        ? { ...DEFAULT_PREFERENCES, ...JSON.parse(stored) }
+        : DEFAULT_PREFERENCES;
+    } catch {
+      return DEFAULT_PREFERENCES;
+    }
+  });
+
+  useEffect(() => {
+    applyTheme(preferences.theme);
+  }, [preferences.theme]);
 
   useEffect(() => {
     if (preferences.theme !== "system") return;

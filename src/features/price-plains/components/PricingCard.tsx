@@ -1,6 +1,7 @@
 "use client";
 
 import { Check, X, Star } from "@phosphor-icons/react";
+import SubscribeButton from "./SubscribeButton";
 
 export type Plan = {
   id: string;
@@ -21,20 +22,21 @@ type Props = {
 export default function PricingCard({ plan, onSubscribe }: Props) {
   return (
     <div
-      className={`relative flex flex-col rounded-3xl p-5 sm:p-6 border transition-all duration-300 group overflow-hidden ${
+      className={`group relative flex h-full flex-col overflow-hidden rounded-3xl border p-5 transition-all duration-300 sm:p-6 ${
         plan.highlighted
-          ? "bg-surface border-purple-500/50 shadow-[0_0_40px_rgba(139,92,246,0.15)]"
-          : "bg-surface border-border-default hover:border-border-active"
+          ? "border-purple-500/50 bg-surface shadow-[0_0_40px_rgba(139,92,246,0.15)] lg:z-10 lg:scale-105"
+          : "border-border-default bg-surface hover:border-border-active"
       }`}
     >
+      {/* Glow Effect */}
       {plan.highlighted && (
-        <div className="absolute -top-16 -right-16 w-48 h-48 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-purple-500/10 blur-3xl" />
       )}
 
       {/* Badge */}
       {plan.badge && (
         <div className="absolute -top-px left-1/2 -translate-x-1/2">
-          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-b-xl bg-linear-to-r from-purple-600 to-cyan-500 text-white text-[10px] font-black uppercase tracking-widest shadow-lg whitespace-nowrap">
+          <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-b-xl bg-linear-to-r from-purple-600 to-cyan-500 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-white shadow-lg">
             <Star size={10} weight="fill" />
             {plan.badge}
           </span>
@@ -42,43 +44,43 @@ export default function PricingCard({ plan, onSubscribe }: Props) {
       )}
 
       {/* Header */}
-      <div className="mt-4 mb-5">
-        <p className="text-xs text-text-muted uppercase tracking-widest mb-1">
+      <div className="mb-4 mt-2">
+        <p className="mb-1 text-xs tracking-widest text-text-muted uppercase">
           {plan.name}
         </p>
-        <p className="text-text-secondary text-sm leading-relaxed">
+        <p className="text-sm leading-relaxed text-text-secondary">
           {plan.description}
         </p>
       </div>
 
       {/* Preço */}
-      <div className="mb-6 sm:mb-8">
+      <div className="mb-6">
         {plan.price === null ? (
-          <p className="text-3xl sm:text-4xl font-black text-text-primary">
+          <p className="text-3xl font-black text-text-primary sm:text-4xl">
             Grátis
           </p>
         ) : (
           <div className="flex items-end gap-1">
-            <span className="text-text-muted text-sm font-bold self-start mt-1 sm:mt-2">
+            <span className="mt-1 self-start text-sm font-bold text-text-muted">
               R$
             </span>
-            <span className="text-4xl sm:text-5xl font-black text-text-primary leading-none">
+            <span className="text-4xl font-black leading-none text-text-primary">
               {plan.price.toLocaleString("pt-BR")}
             </span>
-            <span className="text-text-muted text-sm mb-1">/{plan.period}</span>
+            <span className="mb-1 text-sm text-text-muted">/{plan.period}</span>
           </div>
         )}
       </div>
 
       {/* Features */}
-      <ul className="flex flex-col gap-2 sm:gap-3 mb-6 sm:mb-8 flex-1">
+      <ul className="mb-6 flex flex-col gap-2">
         {plan.features.map((f, i) => (
-          <li key={i} className="flex items-center gap-3">
+          <li key={i} className="flex items-center gap-2">
             <span
-              className={`shrink-0 rounded-full p-0.75 ${
+              className={`shrink-0 rounded-full p-1 ${
                 f.included
-                  ? "text-cyan-400 bg-cyan-400/10"
-                  : "text-text-muted bg-base"
+                  ? "bg-cyan-400/10 text-cyan-400"
+                  : "bg-base text-text-muted"
               }`}
             >
               {f.included ? (
@@ -88,10 +90,10 @@ export default function PricingCard({ plan, onSubscribe }: Props) {
               )}
             </span>
             <span
-              className={`text-sm ${
+              className={`text-xs ${
                 f.included
                   ? "text-text-secondary"
-                  : "text-text-muted line-through"
+                  : "line-through text-text-muted"
               }`}
             >
               {f.label}
@@ -101,16 +103,14 @@ export default function PricingCard({ plan, onSubscribe }: Props) {
       </ul>
 
       {/* CTA */}
-      <button
-        onClick={() => onSubscribe(plan.id)}
-        className={`w-full py-3 rounded-xl font-bold text-sm transition-all active:scale-95 ${
-          plan.highlighted
-            ? "bg-linear-to-r from-purple-600 to-cyan-500 text-white hover:opacity-90 shadow-[0_0_20px_rgba(139,92,246,0.3)]"
-            : "bg-base border border-border-default text-text-secondary hover:border-purple-500/40 hover:text-text-primary"
-        }`}
-      >
-        {plan.price === null ? "Começar grátis" : "Assinar agora"}
-      </button>
+      <div className="mt-auto pt-2">
+        <SubscribeButton
+          planId={plan.id}
+          highlighted={plan.highlighted}
+          label={plan.price === null ? "Começar grátis" : "Assinar agora"}
+          onSubscribe={onSubscribe}
+        />
+      </div>
     </div>
   );
 }

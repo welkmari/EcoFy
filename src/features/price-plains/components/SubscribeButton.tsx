@@ -16,10 +16,10 @@ export default function SubscribeButton({
   return (
     <button
       onClick={() => onSubscribe(planId)}
-      className={`w-full py-3 rounded-xl font-bold text-sm transition-all active:scale-95 ${
+      className={`w-full rounded-xl py-3 text-sm font-bold transition-all active:scale-95 ${
         highlighted
-          ? "bg-linear-to-r from-purple-600 to-cyan-500 text-white hover:opacity-90 shadow-[0_0_20px_rgba(139,92,246,0.3)]"
-          : "bg-base border border-border-default text-text-secondary hover:border-purple-500/40 hover:text-text-primary"
+          ? "bg-linear-to-r from-purple-600 to-cyan-500 text-white shadow-[0_0_20px_rgba(139,92,246,0.3)] hover:opacity-90"
+          : "border border-border-default bg-base text-text-secondary hover:border-purple-500/40 hover:text-text-primary"
       }`}
     >
       {label}

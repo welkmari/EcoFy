@@ -9,6 +9,7 @@ import {
   ChartLineUpIcon,
 } from "@phosphor-icons/react";
 import { cn } from "@/lib/cn";
+import { useEffect, useRef, useState } from "react";
 
 const VARIANT_CONFIG = {
   ganhos: {
@@ -48,6 +49,52 @@ type MetricCardProps = {
   className?: string;
 };
 
+// Helper to detect if text is overflowing
+function useOverflowDetection(ref: React.RefObject<HTMLElement | null>) {
+  const [isOverflowing, setIsOverflowing] = useState(false);
+
+  useEffect(() => {
+    const checkOverflow = () => {
+      if (ref.current) {
+        setIsOverflowing(ref.current.scrollWidth > ref.current.clientWidth);
+      }
+    };
+
+    checkOverflow();
+    window.addEventListener("resize", checkOverflow);
+    return () => window.removeEventListener("resize", checkOverflow);
+  }, [ref]);
+
+  return isOverflowing;
+}
+
+// Format large numbers with compact notation when needed
+function formatCompactValue(value: string): string {
+  // Extract numeric value from currency string (e.g., "R$ 1.234,56" -> 1234.56)
+  const match = value.match(/([\d.,]+)/);
+  if (!match) return value;
+  
+  const cleanNumber = parseFloat(
+    match[0].replace(/\./g, "").replace(",", ".")
+  );
+  
+  if (isNaN(cleanNumber)) return value;
+  
+  // Use compact notation for numbers >= 1 million
+  if (Math.abs(cleanNumber) >= 1_000_000) {
+    const formatter = new Intl.NumberFormat("pt-BR", {
+      notation: "compact",
+      compactDisplay: "short",
+      maximumFractionDigits: 1,
+    });
+    const compactNum = formatter.format(cleanNumber);
+    // Re-apply currency symbol
+    return value.replace(/R?\$?\s?[\d.,]+/, `R$ ${compactNum}`);
+  }
+  
+  return value;
+}
+
 export default function MetricCard({
   variant,
   value,
@@ -57,6 +104,11 @@ export default function MetricCard({
   className,
 }: MetricCardProps) {
   const { icon: Icon, label, color, bg } = VARIANT_CONFIG[variant];
+  const textRef = useRef<HTMLHeadingElement>(null);
+  const isOverflowing = useOverflowDetection(textRef);
+  
+  // Apply compact formatting if overflowing or value is large
+  const displayValue = isOverflowing ? formatCompactValue(value) : value;
 
   return (
     <div
@@ -66,9 +118,17 @@ export default function MetricCard({
       )}
     >
       <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <h2 className="truncate text-xl font-bold text-white sm:text-2xl xl:text-3xl">
-            {value}
+        <div className="min-w-0 flex-1">
+          <h2
+            ref={textRef}
+            className="truncate font-bold text-white sm:text-2xl xl:text-3xl"
+            style={{
+              fontSize: "clamp(1.25rem, 5vw, 1.875rem)",
+              lineHeight: 1.2,
+            }}
+            title={value} // Show full value on hover
+          >
+            {displayValue}
           </h2>
           <p className="text-sm text-gray-400">{label}</p>
         </div>

@@ -25,13 +25,13 @@ export default function InstallmentRow({ installment: i, onClick }: Props) {
     >
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-white font-semibold">{i.name}</p>
+          <p className="text-text-primary font-semibold">{i.name}</p>
           <p className="text-text-muted text-xs mt-0.5">
             {i.category} · Vence dia {i.dueDay}
           </p>
         </div>
         <div className="text-right shrink-0">
-          <p className="text-white font-bold">
+          <p className="text-text-primary font-bold">
             {fmt(monthlyAmount)}
             <span className="text-text-muted text-xs font-normal">/mês</span>
           </p>

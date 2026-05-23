@@ -39,11 +39,13 @@ export default function BudgetHealthBar({
   totalSpent,
   totalBudget,
   onBudgetChange,
+  periodLabel,
 }: {
   categories: BudgetCategory[];
   totalSpent: number;
   totalBudget: number;
   onBudgetChange?: (value: number) => void;
+  periodLabel?: string;
 }) {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [budgetMenuOpen, setBudgetMenuOpen] = useState(false);
@@ -64,7 +66,7 @@ export default function BudgetHealthBar({
       label: "Disponível",
       spent: available,
       budget: available,
-      color: "#1f2937",
+      color: "#252A35",
       type: "available" as const,
       percent: Math.max((available / safeBudget) * 100, categories.length ? 1 : 100),
       usedPercent: 0,
@@ -85,17 +87,17 @@ export default function BudgetHealthBar({
   };
 
   return (
-    <div className="bg-surface/50 p-5 rounded-2xl border border-border-default flex flex-col gap-4">
+    <div className="flex flex-col gap-4 rounded-2xl bg-surface/80 p-5 shadow-[0_14px_34px_rgba(0,0,0,0.18)]">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h3 className="text-text-primary font-semibold">Saúde Financeira</h3>
           <p className="text-text-muted text-xs mt-0.5">
-            Orçamento usado - Maio 2026
+            Orçamento usado{periodLabel ? ` - ${periodLabel}` : ""}
           </p>
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="rounded-full border border-border-default bg-base/40 px-3 py-1.5 text-xs font-semibold text-text-primary">
+          <span className="rounded-full bg-base/55 px-3 py-1.5 text-xs font-semibold text-text-primary">
             {formatCompactBrl(totalSpent)} / {formatCompactBrl(totalBudget)}
           </span>
           <span className={cn("text-sm font-semibold", health.color)}>
@@ -108,18 +110,18 @@ export default function BudgetHealthBar({
                 setBudgetDraft(String(totalBudget));
                 setBudgetMenuOpen((open) => !open);
               }}
-              className="flex h-8 w-8 items-center justify-center rounded-full border border-border-default bg-base/40 text-text-muted transition-colors hover:border-border-active hover:text-text-primary"
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-base/55 text-text-muted transition-colors hover:text-text-primary"
               aria-label="Editar limite mensal"
             >
               <DotsThreeVerticalIcon size={18} weight="bold" />
             </button>
 
             {budgetMenuOpen && (
-              <div className="absolute right-0 top-10 z-40 w-64 rounded-2xl border border-border-default bg-surface p-3 shadow-2xl shadow-black/30">
+              <div className="absolute right-0 top-10 z-40 w-64 rounded-2xl bg-surface p-3 shadow-2xl shadow-black/35">
                 <p className="text-xs font-bold uppercase tracking-[0.16em] text-text-muted">
                   Limite mensal
                 </p>
-                <div className="mt-3 flex items-center gap-2 rounded-xl border border-border-default bg-base px-3 py-2 focus-within:border-border-active">
+                <div className="mt-3 flex items-center gap-2 rounded-xl bg-base px-3 py-2 ring-1 ring-transparent focus-within:ring-purple-500/45">
                   <span className="text-sm font-bold text-text-muted">R$</span>
                   <input
                     value={budgetDraft}
@@ -162,7 +164,7 @@ export default function BudgetHealthBar({
           </div>
 
           <div className="relative">
-            <div className="flex h-9 overflow-hidden rounded-xl border border-border-default bg-surface">
+            <div className="flex h-9 overflow-hidden rounded-xl bg-surface">
               {segments.map((item, index) => (
                 <button
                   key={item.label}
@@ -186,7 +188,7 @@ export default function BudgetHealthBar({
 
             {active && safeActiveIndex != null && (
               <div
-              className="pointer-events-none absolute top-11 z-10 w-40 rounded-lg border border-border-default bg-base/95 px-2.5 py-2 text-xs shadow-xl shadow-black/30"
+              className="pointer-events-none absolute top-11 z-10 w-40 rounded-lg bg-base/95 px-2.5 py-2 text-xs shadow-xl shadow-black/30"
               style={{
                 left: `${getTooltipLeft(segments, safeActiveIndex)}%`,
                 transform: getTooltipTransform(segments.length, safeActiveIndex),
@@ -225,7 +227,7 @@ export default function BudgetHealthBar({
 
         <div className="grid min-w-0 grid-cols-1 gap-1.5 sm:grid-cols-2 xl:grid-cols-1 xl:content-center">
           {!hasData ? (
-            <div className="rounded-xl border border-dashed border-border-default bg-base/20 px-3 py-5 text-center">
+            <div className="rounded-xl bg-base/35 px-3 py-5 text-center">
               <p className="text-sm font-semibold text-text-primary">Sem dados</p>
               <p className="mt-1 text-xs text-text-muted">
                 Cadastre gastos para acompanhar o orçamento por categoria.
@@ -242,10 +244,10 @@ export default function BudgetHealthBar({
                 onMouseEnter={() => setActiveIndex(index)}
                 onFocus={() => setActiveIndex(index)}
                 className={cn(
-                  "rounded-md border px-2.5 py-2 text-left transition-colors",
+                  "rounded-md px-2.5 py-2 text-left transition-colors",
                   safeActiveIndex === index
-                    ? "border-border-active bg-base/60"
-                    : "border-transparent bg-base/20 hover:border-border-default",
+                    ? "bg-base/70"
+                    : "bg-base/20 hover:bg-base/45",
                 )}
               >
                 <div className="mb-1 flex items-center justify-between gap-2">

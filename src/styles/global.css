@@ -1,43 +1,66 @@
 @import "tailwindcss";
 
 @theme {
-  --color-base: #0b1120;
-  --color-surface: #161d30;
+  --color-base: #08090d;
+  --color-surface: #11141b;
   --color-red-hover: rgba(248, 113, 113, 0.05);
 
-  --color-border-default: #1f2937;
-  --color-border-active: rgba(139, 92, 246, 0.5);
+  --color-border-default: rgba(37, 42, 53, 0.42);
+  --color-border-active: rgba(142, 99, 206, 0.5);
 
-  --color-purple-400: #a78bfa;
-  --color-purple-500: #8b5cf6;
-  --color-purple-600: #7c3aed;
+  --color-purple-400: #b996ea;
+  --color-purple-500: #8e63ce;
+  --color-purple-600: #6f4aa4;
 
-  --color-cyan-400: #22d3ee;
-  --color-cyan-500: #06b6d4;
+  --color-cyan-400: #bfe9dd;
+  --color-cyan-500: #8ed8c8;
 
-  --color-yellow-500: #eab308;
-  --color-red-400: #f87171;
+  --color-yellow-500: #d7ad55;
+  --color-red-400: #e36f84;
 
-  --color-text-primary: #f9fafb;
-  --color-text-secondary: #9ca3af;
-  --color-text-muted: #6b7280;
+  --color-text-primary: #f7f4ef;
+  --color-text-secondary: #c4c8d1;
+  --color-text-muted: #8a92a1;
 
   /* resolve o conflito text-white vs text-base */
   --color-white: #ffffff;
 }
 
 :root {
-  --ecofy-focus: #22d3ee;
+  --ecofy-focus: #8e63ce;
 }
 
 .theme-light {
-  --color-base: #f6f8f7;
+  --color-base: #f7f2ff;
   --color-surface: #ffffff;
-  --color-border-default: #d9e2dc;
-  --color-border-active: rgba(13, 148, 136, 0.45);
-  --color-text-primary: #10201b;
-  --color-text-secondary: #40554d;
-  --color-text-muted: #6b7d75;
+  --color-border-default: rgba(58, 36, 82, 0.12);
+  --color-border-active: rgba(142, 99, 206, 0.36);
+  --color-text-primary: #20162b;
+  --color-text-secondary: #4b3b5f;
+  --color-text-muted: #79698d;
+  --color-red-hover: rgba(239, 68, 68, 0.08);
+  --ecofy-focus: #8e63ce;
+}
+
+.theme-light body {
+  background: var(--color-base);
+  color: var(--color-text-primary);
+}
+
+.theme-light input,
+.theme-light select,
+.theme-light textarea {
+  color-scheme: light;
+}
+
+.theme-light input[type="date"],
+.theme-light input[type="month"] {
+  color-scheme: light;
+}
+
+.theme-light input[type="date"]::-webkit-calendar-picker-indicator,
+.theme-light input[type="month"]::-webkit-calendar-picker-indicator {
+  filter: none;
 }
 
 .a11y-contrast {
@@ -127,6 +150,42 @@
   display: none;
 }
 
+.scrollbar-styled {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(142, 99, 206, 0.58) rgba(17, 20, 27, 0.72);
+}
+
+.scrollbar-styled::-webkit-scrollbar {
+  width: 10px;
+}
+
+.scrollbar-styled::-webkit-scrollbar-track {
+  background: rgba(17, 20, 27, 0.72);
+  border-radius: 999px;
+}
+
+.scrollbar-styled::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #8e63ce, #bfe9dd);
+  border: 2px solid rgba(17, 20, 27, 0.92);
+  border-radius: 999px;
+}
+
+.scrollbar-styled::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #b996ea, #bfe9dd);
+}
+
+.theme-light .scrollbar-styled {
+  scrollbar-color: rgba(124, 58, 237, 0.45) rgba(217, 226, 220, 0.7);
+}
+
+.theme-light .scrollbar-styled::-webkit-scrollbar-track {
+  background: rgba(217, 226, 220, 0.7);
+}
+
+.theme-light .scrollbar-styled::-webkit-scrollbar-thumb {
+  border-color: rgba(246, 248, 247, 0.9);
+}
+
 input[type="date"],
 input[type="month"] {
   color-scheme: dark;
@@ -142,6 +201,16 @@ input[type="month"]::-webkit-calendar-picker-indicator {
 input[type="date"]::-webkit-calendar-picker-indicator:hover,
 input[type="month"]::-webkit-calendar-picker-indicator:hover {
   opacity: 1;
+}
+
+.theme-light input[type="date"],
+.theme-light input[type="month"] {
+  color-scheme: light;
+}
+
+.theme-light input[type="date"]::-webkit-calendar-picker-indicator,
+.theme-light input[type="month"]::-webkit-calendar-picker-indicator {
+  filter: none;
 }
 
 button,

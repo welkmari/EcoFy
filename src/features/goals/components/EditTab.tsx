@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import { TrashIcon, FloppyDiskIcon } from "@phosphor-icons/react";
-import { JAR_ICONS } from "../types/JarConfig";
-import { COVERS } from "../types/JarConfig";
+import { COVER_IMAGES, JAR_ICONS, suggestCoverImage } from "../types/JarConfig";
 import type { Jar } from "../types/JarTypes"; 
 import type { JarIconKey } from "../types/JarConfig";
 
@@ -40,13 +39,16 @@ export default function EditTab({ jar, onEdit, onDelete, onClose }: Props) {
   const [name, setName] = useState(jar.name);
   const [iconKey, setIconKey] = useState<JarIconKey>(jar.iconKey);
   const [goal, setGoal] = useState(String(jar.goal));
-  const [cover, setCover] = useState(jar.cover);
+  const cover = jar.cover;
+  const [coverImage, setCoverImage] = useState(
+    jar.coverImage ?? suggestCoverImage(jar.name, jar.iconKey).image,
+  );
   const [showDel, setShowDel] = useState(false);
 
   const save = () => {
     const g = parseFloat(goal.replace(",", "."));
     if (!name.trim() || !g || g <= 0) return;
-    onEdit(jar.id, { name: name.trim(), iconKey, goal: g, cover });
+    onEdit(jar.id, { name: name.trim(), iconKey, goal: g, cover, coverImage });
     onClose();
   };
 
@@ -104,32 +106,59 @@ export default function EditTab({ jar, onEdit, onDelete, onClose }: Props) {
         ))}
       </div>
 
-      {/* Cover picker */}
-      <label style={lbl}>Capa</label>
+      <label style={lbl}>Imagem de capa</label>
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(5, 1fr)",
+          gridTemplateColumns: "repeat(3, 1fr)",
           gap: 6,
           marginBottom: 20,
         }}
       >
-        {COVERS.map((c) => (
+        {COVER_IMAGES.map((c) => (
           <button
             key={c.id}
-            onClick={() => setCover(c)}
+            onClick={() => setCoverImage(c.image)}
             title={c.label}
             style={{
-              height: 40,
+              height: 52,
               borderRadius: 10,
-              border: `2px solid ${cover.id === c.id ? "#a78bfa" : "transparent"}`,
-              background: c.style,
+              border: `2px solid ${coverImage === c.image ? "#a78bfa" : "transparent"}`,
+              backgroundImage: `linear-gradient(to top, rgba(0,0,0,.65), transparent), url("${c.image}")`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
               cursor: "pointer",
               transition: "border .15s",
+              color: "#fff",
+              fontSize: 10,
+              fontWeight: 800,
+              display: "flex",
+              alignItems: "flex-end",
+              padding: 6,
             }}
-          />
+          >
+            {c.label}
+          </button>
         ))}
       </div>
+      <button
+        onClick={() => setCoverImage(suggestCoverImage(name, iconKey).image)}
+        style={{
+          width: "100%",
+          padding: 10,
+          borderRadius: 12,
+          border: "1px solid rgba(167,139,250,.3)",
+          background: "rgba(167,139,250,.08)",
+          color: "#a78bfa",
+          fontSize: 12,
+          fontWeight: 700,
+          cursor: "pointer",
+          fontFamily: "inherit",
+          marginBottom: 14,
+        }}
+      >
+        Sugerir imagem pelo nome
+      </button>
 
       <button
         onClick={save}

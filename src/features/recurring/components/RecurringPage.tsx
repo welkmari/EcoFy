@@ -5,12 +5,20 @@ import { RepeatIcon, PlusIcon, TrophyIcon } from "@phosphor-icons/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/cn";
 import { useToast } from "@/components/feedback/ToastProvider";
-import type { BillStatus, FixedBill, Installment } from "../types";
+import { useSelectedMonth } from "@/lib/selectedMonth";
+import type {
+  BillPayload,
+  BillStatus,
+  FixedBill,
+  Installment,
+  InstallmentEditPayload,
+} from "../types";
 import SummaryBar from "./SummaryBar";
-import BillCard from "./BillCard";
-import InstallmentRow from "./InstallmentRow";
+import BillsTable from "./BillsTable";
+import InstallmentsTable from "./InstallmentsTable";
 import AddRecurringModal from "./AddRecurringModal";
 import InstallmentDetailModal from "./InstallmentDetailModal";
+import EditBillModal from "./EditBillModal";
 
 type BillFilter = "all" | BillStatus;
 type ToastState = { billId: string; previousStatus: BillStatus } | null;
@@ -55,7 +63,27 @@ async function updateBillStatus({
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ status }),
   });
-  if (!response.ok) throw new Error("Falha ao atualizar conta fixa");
+  if (![200, 201].includes(response.status)) {
+    throw new Error("Falha ao atualizar conta fixa");
+  }
+  return (await response.json()) as FixedBill;
+}
+
+async function updateBillDetails({
+  id,
+  payload,
+}: {
+  id: string;
+  payload: BillPayload;
+}) {
+  const response = await fetch(`/api/recurring/bills/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (![200, 201].includes(response.status)) {
+    throw new Error("Falha ao editar conta fixa");
+  }
   return (await response.json()) as FixedBill;
 }
 
@@ -97,6 +125,22 @@ async function updateInstallmentProgress({
   return (await response.json()) as Installment;
 }
 
+async function updateInstallmentDetails({
+  id,
+  payload,
+}: {
+  id: string;
+  payload: InstallmentEditPayload;
+}) {
+  const response = await fetch(`/api/recurring/installments/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!response.ok) throw new Error("Falha ao editar parcelamento");
+  return (await response.json()) as Installment;
+}
+
 export default function RecurringPage() {
   const [billFilter, setBillFilter] = useState<BillFilter>("all");
   const [modalOpen, setModalOpen] = useState(false);
@@ -104,8 +148,11 @@ export default function RecurringPage() {
     useState<Installment | null>(null);
   const [toast, setToast] = useState<ToastState>(null);
   const [billToDelete, setBillToDelete] = useState<FixedBill | null>(null);
+  const [billToEdit, setBillToEdit] = useState<FixedBill | null>(null);
+  const [updatingBillId, setUpdatingBillId] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const { showToast } = useToast();
+  const { month } = useSelectedMonth();
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["recurring"],
@@ -130,8 +177,32 @@ export default function RecurringPage() {
 
   const billStatusMutation = useMutation({
     mutationFn: updateBillStatus,
+    onMutate: async ({ id, status }) => {
+      setUpdatingBillId(id);
+      await queryClient.cancelQueries({ queryKey: ["recurring"] });
+      const previous = queryClient.getQueryData<RecurringData>(["recurring"]);
+      queryClient.setQueryData<RecurringData>(["recurring"], (current) => {
+        if (!current) return current;
+        return {
+          ...current,
+          bills: current.bills.map((bill) =>
+            bill.id === id ? { ...bill, status } : bill,
+          ),
+        };
+      });
+      return { previous };
+    },
     onSuccess: (updated) => {
-      invalidateRecurring();
+      queryClient.setQueryData<RecurringData>(["recurring"], (current) => {
+        if (!current) return current;
+        return {
+          ...current,
+          bills: current.bills.map((bill) =>
+            bill.id === updated.id ? updated : bill,
+          ),
+        };
+      });
+      queryClient.invalidateQueries({ queryKey: ["overview"] });
       if (updated.status === "paid") {
         showToast({
           title: "Meta concluída",
@@ -139,6 +210,19 @@ export default function RecurringPage() {
           type: "success",
         });
       }
+    },
+    onError: (_error, _variables, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(["recurring"], context.previous);
+      }
+      showToast({
+        title: "Não foi possível confirmar o pagamento. Tente novamente.",
+        type: "error",
+      });
+    },
+    onSettled: () => {
+      setUpdatingBillId(null);
+      queryClient.invalidateQueries({ queryKey: ["recurring"] });
     },
   });
 
@@ -148,6 +232,32 @@ export default function RecurringPage() {
       invalidateRecurring();
       setBillToDelete(null);
       showToast({ title: "Conta fixa excluída", type: "success" });
+    },
+  });
+
+  const editBillMutation = useMutation({
+    mutationFn: updateBillDetails,
+    onSuccess: (updated) => {
+      queryClient.setQueryData<RecurringData>(["recurring"], (current) => {
+        if (!current) return current;
+        return {
+          ...current,
+          bills: current.bills.map((bill) =>
+            bill.id === updated.id ? updated : bill,
+          ),
+        };
+      });
+      setBillToEdit(null);
+      queryClient.invalidateQueries({ queryKey: ["overview"] });
+      queryClient.invalidateQueries({ queryKey: ["recurring"] });
+      showToast({ title: "Conta fixa atualizada", type: "success" });
+    },
+    onError: () => {
+      showToast({
+        title: "Não consegui salvar a edição",
+        description: "Confira os campos e tente novamente.",
+        type: "error",
+      });
     },
   });
 
@@ -161,6 +271,22 @@ export default function RecurringPage() {
     onSuccess: (updated) => {
       invalidateRecurring();
       setSelectedInstallment(updated);
+    },
+  });
+
+  const installmentEditMutation = useMutation({
+    mutationFn: updateInstallmentDetails,
+    onSuccess: (updated) => {
+      invalidateRecurring();
+      setSelectedInstallment(updated);
+      showToast({ title: "Parcelamento atualizado", type: "success" });
+    },
+    onError: () => {
+      showToast({
+        title: "Não consegui editar o parcelamento",
+        description: "Confira os dados e tente novamente.",
+        type: "error",
+      });
     },
   });
 
@@ -208,13 +334,16 @@ export default function RecurringPage() {
       {/* Header */}
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-surface rounded-xl border border-border-default text-purple-400">
+          <div className="rounded-xl bg-surface/80 p-2 text-purple-400 shadow-[0_10px_24px_rgba(0,0,0,0.16)]">
             <RepeatIcon size={22} />
           </div>
           <div>
-            <h1 className="text-white text-2xl font-bold">Contas Fixas</h1>
+            <h1 className="text-text-primary text-2xl font-bold">Contas Fixas</h1>
             <p className="text-text-muted text-sm">
               Contas, parcelamentos e conquistas do mês em um só lugar.
+            </p>
+            <p className="mt-1 text-xs font-bold text-purple-400">
+              Período sincronizado: {month}
             </p>
           </div>
         </div>
@@ -234,7 +363,7 @@ export default function RecurringPage() {
           {Array.from({ length: 3 }).map((_, index) => (
             <div
               key={index}
-              className="h-44 animate-pulse rounded-2xl border border-border-default bg-surface/60"
+              className="h-44 animate-pulse rounded-2xl bg-surface/60"
             />
           ))}
         </div>
@@ -245,13 +374,12 @@ export default function RecurringPage() {
         </p>
       )}
 
-      {/* Fixed Bills */}
       <section className="flex flex-col gap-4">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
-            <h2 className="text-white font-semibold">Pendências do mês</h2>
+            <h2 className="text-text-primary font-semibold">Contas do mês</h2>
             <p className="text-xs text-text-muted">
-              {paidCount} de {bills.length} metas pagas este mês
+              {paidCount} de {bills.length} contas pagas este mês
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -263,7 +391,7 @@ export default function RecurringPage() {
                   "px-3 py-1 rounded-full text-xs font-medium transition-colors",
                   billFilter === f.value
                     ? "bg-purple-500 text-white"
-                    : "bg-surface border border-border-default text-text-muted hover:text-text-primary",
+                    : "bg-surface/70 text-text-muted hover:bg-surface hover:text-text-primary",
                 )}
               >
                 {f.label}
@@ -272,11 +400,11 @@ export default function RecurringPage() {
           </div>
         </div>
         {bills.length > 0 && (
-        <div className="rounded-2xl border border-border-default bg-surface/50 p-4">
+        <div className="rounded-2xl bg-surface/70 p-3 shadow-[0_12px_28px_rgba(0,0,0,0.16)]">
           <div className="mb-2 flex items-center justify-between gap-3">
-            <span className="flex items-center gap-2 text-sm font-bold text-text-primary">
+            <span className="flex items-center gap-2 text-xs font-bold text-text-secondary">
               <TrophyIcon size={18} weight="fill" />
-              Suas conquistas
+              Progresso de pagamentos
             </span>
             <span className="text-xs font-black text-purple-400">
               {bills.length ? Math.round((paidCount / bills.length) * 100) : 0}%
@@ -292,54 +420,29 @@ export default function RecurringPage() {
           </div>
         </div>
         )}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {sortedBills.map((bill) => (
-            <BillCard
-              key={bill.id}
-              bill={bill}
-              onMarkPaid={handleMarkPaid}
-              onUndo={handleUndo}
-              onEdit={(item) =>
-                showToast({
-                  title: "Edição rápida",
-                  description: `${item.name} pode ser ajustada no próximo modal de edição.`,
-                  type: "info",
-                })
-              }
-              onDelete={setBillToDelete}
-            />
-          ))}
-          {!isLoading && sortedBills.length === 0 && (
-            <div className="col-span-full flex flex-col items-center justify-center rounded-2xl border border-dashed border-border-default bg-surface/30 px-6 py-12 text-center">
-              <p className="text-base font-bold text-text-primary">
-                Nenhuma conta fixa cadastrada ainda.
-              </p>
-              <p className="mt-1 max-w-sm text-sm text-text-muted">
-                Adicione sua primeira para acompanhar vencimentos e conquistas.
-              </p>
-              <button
-                onClick={() => setModalOpen(true)}
-                className="mt-4 rounded-xl bg-purple-500 px-4 py-2 text-sm font-black text-white transition-colors hover:bg-purple-600"
-              >
-                Adicionar primeira conta
-              </button>
-            </div>
-          )}
-        </div>
+        <BillsTable
+          bills={sortedBills}
+          onMarkPaid={handleMarkPaid}
+          onUndo={handleUndo}
+          onEdit={setBillToEdit}
+          onDelete={setBillToDelete}
+          updatingBillId={updatingBillId}
+          emptyTitle="Nenhuma conta encontrada."
+          emptyDescription="Adicione uma conta fixa ou ajuste o filtro de status."
+        />
       </section>
 
-      {/* Installments */}
       <section className="flex flex-col gap-4">
-        <h2 className="text-white font-semibold">Parcelamentos</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {installments.map((i) => (
-            <InstallmentRow
-              key={i.id}
-              installment={i}
-              onClick={() => setSelectedInstallment(i)}
-            />
-          ))}
+        <div>
+          <h2 className="text-text-primary font-semibold">Parcelamentos</h2>
+          <p className="text-xs text-text-muted">
+            Acompanhe parcelas, valores mensais e progresso.
+          </p>
         </div>
+        <InstallmentsTable
+          installments={installments}
+          onOpen={setSelectedInstallment}
+        />
       </section>
 
       <AddRecurringModal
@@ -353,6 +456,19 @@ export default function RecurringPage() {
         installment={selectedInstallment}
         onClose={() => setSelectedInstallment(null)}
         onToggleInstallment={handleToggleInstallment}
+        onEditInstallment={(id, payload) =>
+          installmentEditMutation.mutate({ id, payload })
+        }
+        isSavingEdit={installmentEditMutation.isPending}
+      />
+
+      <EditBillModal
+        bill={billToEdit}
+        onClose={() => setBillToEdit(null)}
+        onSave={async (id, payload) => {
+          await editBillMutation.mutateAsync({ id, payload });
+        }}
+        isSaving={editBillMutation.isPending}
       />
 
       {billToDelete && (
@@ -361,7 +477,7 @@ export default function RecurringPage() {
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => setBillToDelete(null)}
           />
-          <div className="relative w-full max-w-sm rounded-2xl border border-border-default bg-surface p-5 shadow-2xl">
+          <div className="relative w-full max-w-sm rounded-2xl bg-surface p-5 shadow-2xl shadow-black/35">
             <h3 className="text-lg font-black text-text-primary">
               Excluir conta fixa?
             </h3>

@@ -40,13 +40,19 @@ function describeArc(startAngle: number, endAngle: number) {
   ].join(" ");
 }
 
-export default function SpendingDonutChart({ data }: { data: SpendingPoint[] }) {
+export default function SpendingDonutChart({
+  data,
+  periodLabel,
+}: {
+  data: SpendingPoint[];
+  periodLabel?: string;
+}) {
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const hasData = data.some((item) => item.value > 0);
   const chartData = data.length
     ? data
-    : [{ name: "Sem gastos", value: 1, color: "#1f2937" }];
+    : [{ name: "Sem gastos", value: 1, color: "#252A35" }];
   const total = chartData.reduce((acc, item) => acc + item.value, 0);
   const slices = chartData.map((item, index) => {
     const start = chartData
@@ -65,17 +71,17 @@ export default function SpendingDonutChart({ data }: { data: SpendingPoint[] }) 
   const active = activeIndex == null ? null : chartData[activeIndex];
 
   return (
-    <div className="bg-surface/50 p-5 rounded-2xl border border-border-default flex flex-col gap-4 h-full min-h-[320px]">
+    <div className="flex h-full min-h-[320px] flex-col gap-4 rounded-2xl bg-surface/80 p-5 shadow-[0_14px_34px_rgba(0,0,0,0.18)]">
       <div className="flex items-start justify-between gap-3 shrink-0">
         <div>
           <h3 className="text-text-primary font-semibold">
             Gastos por Categoria
           </h3>
           <p className="text-text-muted text-xs mt-0.5">
-            Distribuição - Maio 2026
+            Distribuição{periodLabel ? ` - ${periodLabel}` : ""}
           </p>
         </div>
-        <span className="rounded-full border border-border-default bg-base/40 px-3 py-1.5 text-xs font-semibold text-text-primary">
+        <span className="rounded-full bg-base/55 px-3 py-1.5 text-xs font-semibold text-text-primary">
           {formatCompactBrl(total)}
         </span>
       </div>
@@ -94,7 +100,7 @@ export default function SpendingDonutChart({ data }: { data: SpendingPoint[] }) 
               cy={center}
               r={radius}
               fill="none"
-              stroke="#1f2937"
+              stroke="#252A35"
               strokeWidth={stroke}
             />
 
@@ -115,7 +121,7 @@ export default function SpendingDonutChart({ data }: { data: SpendingPoint[] }) 
               />
             ))}
 
-            <circle cx={center} cy={center} r="50" fill="#0b1120" />
+            <circle cx={center} cy={center} r="50" fill="#08090D" />
           </svg>
 
           <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
@@ -137,7 +143,7 @@ export default function SpendingDonutChart({ data }: { data: SpendingPoint[] }) 
 
         <div className="flex min-w-0 flex-col gap-1.5 lg:justify-center">
           {!hasData ? (
-            <div className="rounded-xl border border-dashed border-border-default bg-base/20 px-3 py-4 text-center">
+            <div className="rounded-xl bg-base/35 px-3 py-4 text-center">
               <p className="text-sm font-semibold text-text-primary">Sem dados</p>
               <p className="mt-1 text-xs text-text-muted">
                 Cadastre um gasto para ver a distribuição por categoria.
@@ -153,10 +159,10 @@ export default function SpendingDonutChart({ data }: { data: SpendingPoint[] }) 
               onBlur={() => setHoverIndex(null)}
               onClick={() => setSelectedIndex(index)}
               className={cn(
-                "flex w-full items-center justify-between gap-2 rounded-md border px-2 py-1.5 text-left transition-colors",
+                "flex w-full items-center justify-between gap-2 rounded-md px-2 py-1.5 text-left transition-colors",
                 activeIndex === index
-                  ? "border-border-active bg-base/60"
-                  : "border-transparent bg-base/20 hover:border-border-default",
+                  ? "bg-base/70"
+                  : "bg-base/20 hover:bg-base/45",
               )}
             >
               <span className="flex min-w-0 items-center gap-2">

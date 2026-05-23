@@ -5,7 +5,13 @@ import { db } from "@/lib/db";
 import { installments } from "@/lib/schema";
 
 const paidSchema = z.object({
-  paidInstallments: z.coerce.number().int().min(0),
+  paidInstallments: z.coerce.number().int().min(0).optional(),
+  name: z.string().trim().min(1).optional(),
+  category: z.string().trim().min(1).optional(),
+  totalAmount: z.coerce.number().positive().optional(),
+  totalInstallments: z.coerce.number().int().min(1).optional(),
+  dueDay: z.coerce.number().int().min(1).max(31).optional(),
+  scope: z.enum(["current", "future", "all"]).optional(),
 });
 
 function serialize(row: typeof installments.$inferSelect) {
@@ -44,16 +50,24 @@ export async function PATCH(
     return Response.json({ error: "Installment not found" }, { status: 404 });
   }
 
+  const totalInstallments =
+    parsed.data.totalInstallments ?? current.totalInstallments;
+  const totalAmount = parsed.data.totalAmount ?? toNumber(current.totalAmount);
   const paidInstallments = Math.min(
-    parsed.data.paidInstallments,
-    current.totalInstallments,
+    parsed.data.paidInstallments ?? current.paidInstallments,
+    totalInstallments,
   );
-  const monthlyAmount = toNumber(current.totalAmount) / current.totalInstallments;
+  const monthlyAmount = totalAmount / totalInstallments;
   const paidAmount = monthlyAmount * paidInstallments;
 
   const [updated] = await db
     .update(installments)
     .set({
+      name: parsed.data.name ?? current.name,
+      category: parsed.data.category ?? current.category,
+      totalAmount: totalAmount.toFixed(2),
+      totalInstallments,
+      dueDay: parsed.data.dueDay ?? current.dueDay,
       paidInstallments,
       paidAmount: paidAmount.toFixed(2),
     })

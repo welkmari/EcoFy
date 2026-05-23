@@ -173,7 +173,7 @@ export default function TransactionModal({
 
         <div className="flex items-center justify-between px-6 pt-5 pb-4">
           <div>
-            <h2 className="text-white font-semibold text-lg">
+            <h2 className="text-text-primary font-semibold text-lg">
               {initialTransaction ? "Editar Transação" : "Nova Transação"}
             </h2>
             <p className="text-text-muted text-xs mt-0.5">
@@ -182,7 +182,7 @@ export default function TransactionModal({
           </div>
           <button
             onClick={handleClose}
-            className="p-2 rounded-lg text-text-muted hover:text-white hover:bg-white/10 transition-colors"
+            className="p-2 rounded-lg text-text-muted hover:text-text-primary hover:bg-base transition-colors"
           >
             <XIcon size={18} />
           </button>
@@ -231,7 +231,7 @@ export default function TransactionModal({
               onChange={(e) =>
                 setForm((f) => ({ ...f, description: e.target.value }))
               }
-              className="w-full bg-transparent text-sm text-white placeholder:text-text-muted outline-none"
+              className="w-full bg-transparent text-sm text-text-primary placeholder:text-text-muted outline-none"
             />
           </Field>
 
@@ -245,7 +245,7 @@ export default function TransactionModal({
               onChange={(e) =>
                 setForm((f) => ({ ...f, amount: e.target.value }))
               }
-              className="w-full bg-transparent text-sm text-white placeholder:text-text-muted outline-none ml-1"
+              className="w-full bg-transparent text-sm text-text-primary placeholder:text-text-muted outline-none ml-1"
             />
           </Field>
 
@@ -260,7 +260,7 @@ export default function TransactionModal({
                 className="w-full flex items-center justify-between bg-base border border-border-default rounded-xl px-3 py-2.5 text-sm transition-colors hover:border-border-active"
               >
                 <span
-                  className={form.category ? "text-white" : "text-text-muted"}
+                  className={form.category ? "text-text-primary" : "text-text-muted"}
                 >
                   {form.category || "Selecione uma categoria"}
                 </span>
@@ -280,7 +280,7 @@ export default function TransactionModal({
                         className={cn(
                           "w-full text-left px-4 py-2.5 text-sm transition-colors hover:bg-white/5",
                           form.category === cat
-                            ? "text-white font-medium"
+                            ? "text-text-primary font-medium"
                             : "text-text-secondary",
                         )}
                       >
@@ -301,7 +301,7 @@ export default function TransactionModal({
                           onKeyDown={(e) =>
                             e.key === "Enter" && handleAddCategory()
                           }
-                          className="flex-1 bg-base border border-border-default rounded-lg px-3 py-1.5 text-sm text-white placeholder:text-text-muted outline-none focus:border-border-active"
+                          className="flex-1 bg-base border border-border-default rounded-lg px-3 py-1.5 text-sm text-text-primary placeholder:text-text-muted outline-none focus:border-border-active"
                         />
                         <button
                           onClick={handleAddCategory}
@@ -330,7 +330,7 @@ export default function TransactionModal({
               type="date"
               value={form.date}
               onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))}
-              className="w-full bg-transparent text-sm text-white outline-none scheme:dark"
+              className="w-full bg-transparent text-sm text-text-primary outline-none"
             />
           </Field>
 

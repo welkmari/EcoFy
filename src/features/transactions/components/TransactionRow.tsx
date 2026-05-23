@@ -3,12 +3,12 @@
 import {
   PencilSimpleIcon,
   TrashIcon,
-  ArrowCircleUpIcon,
-  ArrowCircleDownIcon,
 } from "@phosphor-icons/react";
 import { cn } from "@/lib/cn";
 import { useUserPreferences } from "@/lib/useUserPreferences";
 import type { Transaction } from "../types";
+import CategoryIcon, { getCategoryStyle } from "./CategoryIcon";
+import { getStatusTransacao } from "../utils";
 
 type Props = {
   transaction: Transaction;
@@ -18,15 +18,15 @@ type Props = {
 };
 
 const STATUS_STYLES: Record<string, string> = {
-  recebido: "bg-cyan-400/10 text-cyan-400",
-  pendente: "bg-yellow-500/10 text-yellow-500",
-  pago: "bg-purple-400/10 text-purple-400",
+  pago: "bg-emerald-400/[0.08] text-emerald-400",
+  pendente: "bg-yellow-500/[0.08] text-yellow-500",
+  agendado: "bg-purple-500/[0.08] text-purple-400",
 };
 
 const STATUS_LABELS: Record<string, string> = {
-  recebido: "Recebido",
-  pendente: "Pendente",
   pago: "Pago",
+  pendente: "Pendente",
+  agendado: "Agendado",
 };
 
 export default function TransactionRow({
@@ -37,6 +37,12 @@ export default function TransactionRow({
 }: Props) {
   const { preferences } = useUserPreferences();
   const isEntrada = transaction.type === "entrada";
+  const categoryStyle = getCategoryStyle(transaction.category, transaction.type);
+  const dataPagamento =
+    transaction.status === "pago" || transaction.status === "recebido"
+      ? transaction.date
+      : null;
+  const visualStatus = getStatusTransacao(transaction.date, dataPagamento);
   const fmt = (v: number) =>
     new Intl.NumberFormat(preferences.language, {
       style: "currency",
@@ -46,28 +52,30 @@ export default function TransactionRow({
 
   if (compact) {
     return (
-      <div className="group flex items-center gap-3 bg-surface/35 px-4 py-3">
-        <div
-          className={cn(
-            "rounded-xl p-2",
-            isEntrada
-              ? "bg-cyan-400/10 text-cyan-400"
-              : "bg-red-400/10 text-red-400",
-          )}
-        >
-          {isEntrada ? (
-            <ArrowCircleUpIcon size={18} />
-          ) : (
-            <ArrowCircleDownIcon size={18} />
-          )}
-        </div>
+      <div className="group flex items-center gap-3 bg-surface/20 px-4 py-3">
+        <CategoryIcon
+          category={transaction.category}
+          type={transaction.type}
+          size="sm"
+        />
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-bold text-text-primary">
             {transaction.description}
           </p>
-          <p className="truncate text-xs text-text-muted">
-            {transaction.category} · Conta principal
-          </p>
+          <div className="mt-1 flex min-w-0 items-center gap-2">
+            <span
+              className={cn(
+                "max-w-28 truncate rounded-full px-2 py-0.5 text-[11px] font-bold",
+                categoryStyle.bg,
+                categoryStyle.text,
+              )}
+            >
+              {transaction.category}
+            </span>
+            <span className="truncate text-xs text-text-muted">
+              Conta principal
+            </span>
+          </div>
         </div>
         <div className="text-right">
           <p
@@ -101,33 +109,32 @@ export default function TransactionRow({
   }
 
   return (
-    <tr className="group border-b border-border-default hover:bg-white/5 transition-colors">
+    <tr className="group border-b border-white/[0.04] transition-colors hover:bg-base/28">
       <td className="px-4 py-3 text-text-muted text-sm">
         {new Date(`${transaction.date}T00:00:00`).toLocaleDateString("pt-BR")}
       </td>
       <td className="px-4 py-3">
         <div className="flex items-center gap-3">
-          <div
-            className={cn(
-              "p-1.5 rounded-lg shrink-0",
-              isEntrada
-                ? "bg-cyan-400/10 text-cyan-400"
-                : "bg-red-400/10 text-red-400",
-            )}
-          >
-            {isEntrada ? (
-              <ArrowCircleUpIcon size={16} />
-            ) : (
-              <ArrowCircleDownIcon size={16} />
-            )}
-          </div>
+          <CategoryIcon
+            category={transaction.category}
+            type={transaction.type}
+            size="sm"
+          />
           <span className="text-text-primary text-sm font-medium">
             {transaction.description}
           </span>
         </div>
       </td>
-      <td className="px-4 py-3 text-text-muted text-sm">
-        {transaction.category}
+      <td className="px-4 py-3">
+        <span
+          className={cn(
+            "inline-flex max-w-40 items-center rounded-full px-2.5 py-1 text-xs font-bold",
+            categoryStyle.bg,
+            categoryStyle.text,
+          )}
+        >
+          <span className="truncate">{transaction.category}</span>
+        </span>
       </td>
       <td className="px-4 py-3 text-text-muted text-sm">
         Conta principal
@@ -145,10 +152,10 @@ export default function TransactionRow({
         <span
           className={cn(
             "px-2.5 py-1 rounded-full text-xs font-medium",
-            STATUS_STYLES[transaction.status],
+            STATUS_STYLES[visualStatus],
           )}
         >
-          {STATUS_LABELS[transaction.status]}
+          {STATUS_LABELS[visualStatus]}
         </span>
       </td>
       <td className="px-4 py-3">

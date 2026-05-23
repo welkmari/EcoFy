@@ -6,6 +6,7 @@ import AccessibilityPanel from "@/components/accessibility/AccessibilityPanel";
 import { ToastProvider } from "@/components/feedback/ToastProvider";
 import OnboardingCoach from "@/components/onboarding/OnboardingCoach";
 import { useUserPreferences } from "@/lib/useUserPreferences";
+import { SelectedMonthProvider } from "@/lib/selectedMonth";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -26,10 +27,12 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <ToastProvider>
-        <PreferenceEffects />
-        {children}
-        <OnboardingCoach />
-        <AccessibilityPanel />
+        <SelectedMonthProvider>
+          <PreferenceEffects />
+          {children}
+          <OnboardingCoach />
+          <AccessibilityPanel />
+        </SelectedMonthProvider>
       </ToastProvider>
     </QueryClientProvider>
   );
@@ -46,6 +49,7 @@ function PreferenceEffects() {
         preferences.theme === "system" ? systemDark : preferences.theme === "dark";
       root.classList.toggle("theme-light", !dark);
       root.classList.toggle("theme-dark", dark);
+      root.dataset.theme = dark ? "dark" : "light";
       root.style.colorScheme = dark ? "dark" : "light";
     };
 

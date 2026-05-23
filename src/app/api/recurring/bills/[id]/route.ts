@@ -4,8 +4,13 @@ import { requireUser, toNumber } from "@/lib/api-auth";
 import { db } from "@/lib/db";
 import { fixedBills } from "@/lib/schema";
 
-const statusSchema = z.object({
-  status: z.enum(["paid", "pending", "overdue"]),
+const billUpdateSchema = z.object({
+  name: z.string().trim().min(1).optional(),
+  category: z.string().trim().min(1).optional(),
+  amount: z.coerce.number().positive().optional(),
+  recurrence: z.enum(["monthly", "annual", "weekly"]).optional(),
+  dueDay: z.coerce.number().int().min(1).max(31).optional(),
+  status: z.enum(["paid", "pending", "overdue"]).optional(),
 });
 
 function serialize(row: typeof fixedBills.$inferSelect) {
@@ -27,15 +32,23 @@ export async function PATCH(
   const { user, response } = await requireUser();
   if (response) return response;
 
-  const parsed = statusSchema.safeParse(await request.json());
+  const parsed = billUpdateSchema.safeParse(await request.json());
   if (!parsed.success) {
-    return Response.json({ error: "Invalid bill status" }, { status: 400 });
+    return Response.json({ error: "Invalid bill update" }, { status: 400 });
   }
+
+  const updateData = {
+    ...parsed.data,
+    amount:
+      parsed.data.amount === undefined
+        ? undefined
+        : parsed.data.amount.toFixed(2),
+  };
 
   const { id } = await params;
   const [updated] = await db
     .update(fixedBills)
-    .set({ status: parsed.data.status })
+    .set(updateData)
     .where(and(eq(fixedBills.id, id), eq(fixedBills.userId, user.id)))
     .returning();
 

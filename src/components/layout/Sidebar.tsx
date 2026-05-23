@@ -140,7 +140,7 @@ export default function Sidebar() {
                 >
                   <Icon size={22} />
                   {!isCollapsed && (
-                    <span className="text-amber-50 font-medium">{label}</span>
+                    <span className="font-medium text-text-primary">{label}</span>
                   )}
                 </div>
                 {!isCollapsed && (
@@ -199,7 +199,7 @@ export default function Sidebar() {
                 )}
               >
                 <Icon size={22} />
-                {!isCollapsed && <span className="text-amber-50">{label}</span>}
+                {!isCollapsed && <span className="text-text-primary">{label}</span>}
               </Link>
             );
           })}
@@ -251,7 +251,7 @@ export default function Sidebar() {
           )}
         >
           <SignOutIcon size={22} />
-          {!isCollapsed && <span className="text-amber-50">Sair da conta</span>}
+          {!isCollapsed && <span className="text-text-primary">Sair da conta</span>}
         </button>
       </div>
     </div>
@@ -288,7 +288,7 @@ function PremiumSection({
         <div className={cn("flex items-center", !isCollapsed && "gap-3")}>
           <LightningIcon size={22} weight="fill" />
           {!isCollapsed && (
-            <span className="text-amber-50 font-semibold">EcoPlus</span>
+            <span className="font-semibold text-text-primary">EcoPlus</span>
           )}
         </div>
         {!isCollapsed && (

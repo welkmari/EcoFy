@@ -1,20 +1,60 @@
 "use client";
 
-import { XIcon, CheckCircleIcon, CircleIcon } from "@phosphor-icons/react";
+import { useEffect, useState } from "react";
+import {
+  XIcon,
+  CheckCircleIcon,
+  CircleIcon,
+  PencilSimpleIcon,
+} from "@phosphor-icons/react";
 import { cn } from "@/lib/cn";
-import type { Installment } from "../types";
+import type {
+  Installment,
+  InstallmentEditPayload,
+  InstallmentEditScope,
+} from "../types";
 
 type Props = {
   installment: Installment | null;
   onClose: () => void;
   onToggleInstallment: (id: string, paidInstallments: number) => void;
+  onEditInstallment?: (id: string, payload: InstallmentEditPayload) => void;
+  isSavingEdit?: boolean;
 };
 
 export default function InstallmentDetailModal({
   installment,
   onClose,
   onToggleInstallment,
+  onEditInstallment,
+  isSavingEdit = false,
 }: Props) {
+  const [editing, setEditing] = useState(false);
+  const [scope, setScope] = useState<InstallmentEditScope>("current");
+  const [draft, setDraft] = useState({
+    name: "",
+    category: "",
+    totalAmount: "",
+    totalInstallments: "",
+    dueDay: "",
+  });
+
+  useEffect(() => {
+    if (!installment) return;
+    const frame = window.requestAnimationFrame(() => {
+      setEditing(false);
+      setScope("current");
+      setDraft({
+        name: installment.name,
+        category: installment.category,
+        totalAmount: String(installment.totalAmount),
+        totalInstallments: String(installment.totalInstallments),
+        dueDay: String(installment.dueDay),
+      });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [installment]);
+
   if (!installment) return null;
 
   const monthlyAmount = installment.totalAmount / installment.totalInstallments;
@@ -34,6 +74,30 @@ export default function InstallmentDetailModal({
     onToggleInstallment(installment.id, newPaid);
   };
 
+  const hasActiveInstallments =
+    installment.totalInstallments > 1 &&
+    installment.paidInstallments < installment.totalInstallments;
+  const canSaveEdit =
+    draft.name.trim() &&
+    draft.category.trim() &&
+    Number(draft.totalAmount) > 0 &&
+    Number(draft.totalInstallments) >= 1 &&
+    Number(draft.dueDay) >= 1 &&
+    Number(draft.dueDay) <= 31;
+
+  const handleSaveEdit = () => {
+    if (!canSaveEdit || !onEditInstallment) return;
+    onEditInstallment(installment.id, {
+      name: draft.name.trim(),
+      category: draft.category.trim(),
+      totalAmount: Number(draft.totalAmount),
+      totalInstallments: Number(draft.totalInstallments),
+      dueDay: Number(draft.dueDay),
+      scope,
+    });
+    setEditing(false);
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div
@@ -47,7 +111,7 @@ export default function InstallmentDetailModal({
         {/* Header */}
         <div className="flex items-center justify-between px-6 pt-5 pb-4">
           <div>
-            <h2 className="text-white font-semibold text-lg">
+            <h2 className="text-text-primary font-semibold text-lg">
               {installment.name}
             </h2>
             <p className="text-text-muted text-xs mt-0.5">
@@ -56,7 +120,7 @@ export default function InstallmentDetailModal({
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-lg text-text-muted hover:text-white hover:bg-white/10 transition-colors"
+            className="p-2 rounded-lg text-text-muted hover:text-text-primary hover:bg-base transition-colors"
           >
             <XIcon size={18} />
           </button>
@@ -64,10 +128,17 @@ export default function InstallmentDetailModal({
 
         {/* Resumo */}
         <div className="px-6 pb-4 flex flex-col gap-3">
+          {hasActiveInstallments && (
+            <div className="rounded-xl border border-purple-400/20 bg-purple-400/10 px-4 py-3 text-xs text-purple-400">
+              Parcelamento ativo detectado. Ao editar, escolha o alcance da
+              alteração antes de salvar.
+            </div>
+          )}
+
           <div className="grid grid-cols-3 gap-3 text-center">
             <div className="bg-base rounded-xl p-3 border border-border-default">
               <p className="text-text-muted text-xs">Por parcela</p>
-              <p className="text-white font-bold text-sm mt-1">
+              <p className="text-text-primary font-bold text-sm mt-1">
                 {fmt(monthlyAmount)}
               </p>
             </div>
@@ -84,6 +155,105 @@ export default function InstallmentDetailModal({
               </p>
             </div>
           </div>
+
+          {onEditInstallment && (
+            <div className="rounded-xl border border-border-default bg-base/40 p-3">
+              {!editing ? (
+                <button
+                  type="button"
+                  onClick={() => setEditing(true)}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl border border-border-default bg-surface px-3 py-2 text-sm font-bold text-text-primary transition-colors hover:border-border-active"
+                >
+                  <PencilSimpleIcon size={16} />
+                  Editar parcelamento
+                </button>
+              ) : (
+                <div className="flex flex-col gap-3">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <EditInput
+                      label="Nome"
+                      value={draft.name}
+                      onChange={(name) => setDraft((d) => ({ ...d, name }))}
+                    />
+                    <EditInput
+                      label="Categoria"
+                      value={draft.category}
+                      onChange={(category) =>
+                        setDraft((d) => ({ ...d, category }))
+                      }
+                    />
+                    <EditInput
+                      label="Valor total"
+                      type="number"
+                      value={draft.totalAmount}
+                      onChange={(totalAmount) =>
+                        setDraft((d) => ({ ...d, totalAmount }))
+                      }
+                    />
+                    <EditInput
+                      label="Parcelas"
+                      type="number"
+                      value={draft.totalInstallments}
+                      onChange={(totalInstallments) =>
+                        setDraft((d) => ({ ...d, totalInstallments }))
+                      }
+                    />
+                    <EditInput
+                      label="Vencimento"
+                      type="number"
+                      value={draft.dueDay}
+                      onChange={(dueDay) =>
+                        setDraft((d) => ({ ...d, dueDay }))
+                      }
+                    />
+                  </div>
+
+                  {hasActiveInstallments && (
+                    <div className="flex flex-col gap-2 rounded-xl border border-border-default bg-surface/60 p-3">
+                      {[
+                        ["current", "Editar apenas esta parcela"],
+                        ["future", "Editar esta e todas as próximas parcelas da sequência"],
+                        ["all", "Editar todo o histórico deste parcelamento"],
+                      ].map(([value, label]) => (
+                        <label
+                          key={value}
+                          className="flex cursor-pointer items-center gap-2 text-sm text-text-secondary"
+                        >
+                          <input
+                            type="radio"
+                            checked={scope === value}
+                            onChange={() =>
+                              setScope(value as InstallmentEditScope)
+                            }
+                            className="accent-purple-500"
+                          />
+                          {label}
+                        </label>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="flex justify-end gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setEditing(false)}
+                      className="rounded-xl px-3 py-2 text-sm font-bold text-text-muted transition-colors hover:text-text-primary"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSaveEdit}
+                      disabled={!canSaveEdit || isSavingEdit}
+                      className="rounded-xl bg-purple-500 px-4 py-2 text-sm font-black text-white transition-colors hover:bg-purple-600 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {isSavingEdit ? "Salvando..." : "Salvar alterações"}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Progress */}
           <div className="flex flex-col gap-1.5">
@@ -173,5 +343,29 @@ export default function InstallmentDetailModal({
         </div>
       </div>
     </div>
+  );
+}
+
+function EditInput({
+  label,
+  value,
+  onChange,
+  type = "text",
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  type?: string;
+}) {
+  return (
+    <label className="flex flex-col gap-1 text-xs font-medium text-text-muted">
+      {label}
+      <input
+        type={type}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="rounded-xl border border-border-default bg-surface px-3 py-2 text-sm text-text-primary outline-none transition-colors placeholder:text-text-muted focus:border-border-active"
+      />
+    </label>
   );
 }

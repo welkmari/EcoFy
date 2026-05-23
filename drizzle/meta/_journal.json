@@ -15,6 +15,13 @@
       "when": 1777926979938,
       "tag": "0001_certain_sleeper",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1779489600000,
+      "tag": "0002_add_goal_cover_image",
+      "breakpoints": true
     }
   ]
 }

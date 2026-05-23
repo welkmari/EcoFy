@@ -7,7 +7,7 @@ import {
   XIcon,
 } from "@phosphor-icons/react";
 import { cn } from "@/lib/cn";
-import { COVERS, JAR_ICONS } from "../types/JarConfig";
+import { COVER_IMAGES, COVERS, JAR_ICONS, suggestCoverImage } from "../types/JarConfig";
 import type { Jar } from "../types/JarTypes";
 import type { JarIconKey } from "../types/JarConfig";
 
@@ -26,7 +26,7 @@ export default function CreateModal({ onClose, onCreate }: Props) {
   const [initial, setInitial] = useState("");
   const [targetMonth, setTargetMonth] = useState("");
   const [iconKey, setIconKey] = useState<JarIconKey>("star");
-  const [cover, setCover] = useState(COVERS[0]);
+  const [coverImage, setCoverImage] = useState(() => COVER_IMAGES[0].image);
 
   const selectedIcon = JAR_ICONS.find((i) => i.key === iconKey) ?? JAR_ICONS[0];
   const Icon = selectedIcon.icon;
@@ -55,7 +55,8 @@ export default function CreateModal({ onClose, onCreate }: Props) {
       goal: goalValue,
       current: initialValue,
       iconKey,
-      cover,
+      cover: COVERS[0],
+      coverImage,
       targetMonth: targetMonth || undefined,
       history:
         initialValue > 0
@@ -80,7 +81,11 @@ export default function CreateModal({ onClose, onCreate }: Props) {
       <div className="flex max-h-[92vh] w-full max-w-xl flex-col overflow-hidden rounded-2xl border border-border-default bg-surface shadow-2xl shadow-black/40">
         <div
           className="relative flex min-h-32 items-end p-5"
-          style={{ background: cover.style }}
+          style={{
+            backgroundImage: `linear-gradient(to top, rgba(0,0,0,.72), rgba(0,0,0,.18)), url("${coverImage}")`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
         >
           <button
             onClick={onClose}
@@ -219,46 +224,56 @@ export default function CreateModal({ onClose, onCreate }: Props) {
 
           {step === 3 && (
             <div className="grid gap-5">
-              <Field label="Capa do cofrinho">
-                <div className="grid grid-cols-4 gap-2 sm:grid-cols-8">
-                  {COVERS.map((item) => (
-                    <button
-                      key={item.id}
-                      onClick={() => setCover(item)}
-                      title={item.label}
-                      className={cn(
-                        "h-12 rounded-xl border-2 transition-transform hover:scale-105",
-                        cover.id === item.id
-                          ? "border-white"
-                          : "border-transparent",
-                      )}
-                      style={{ background: item.style }}
-                    />
-                  ))}
-                </div>
-              </Field>
-
-              <div
-                className="rounded-2xl p-5"
-                style={{ background: cover.style }}
-              >
-                <div className="flex items-center gap-3">
-                  <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-black/35 text-white">
-                    <Icon size={25} weight="duotone" />
-                  </span>
-                  <div className="min-w-0">
-                    <p className="truncate text-lg font-black text-white">
-                      {name}
-                    </p>
-                    <p className="text-sm font-bold text-white/75">
-                      Meta de R${" "}
-                      {goalValue.toLocaleString("pt-BR", {
-                        minimumFractionDigits: 2,
-                      })}
-                    </p>
+              <Field label="Imagem de capa">
+                <div
+                  className="relative min-h-40 overflow-hidden rounded-2xl border border-border-default bg-cover bg-center p-4"
+                  style={{ backgroundImage: `url("${coverImage}")` }}
+                >
+                  <div className="absolute inset-0 bg-linear-to-t from-black/85 via-black/40 to-black/10" />
+                  <div className="relative flex h-full min-h-32 items-end">
+                    <div>
+                      <p className="text-lg font-black text-white">
+                        {name || "Seu cofrinho"}
+                      </p>
+                      <p className="text-sm font-bold text-white/75">
+                        Meta de R${" "}
+                        {goalValue.toLocaleString("pt-BR", {
+                          minimumFractionDigits: 2,
+                        })}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
+                <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-5">
+                  {COVER_IMAGES.map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={() => setCoverImage(item.image)}
+                      title={item.label}
+                      className={cn(
+                        "h-16 overflow-hidden rounded-xl border-2 bg-cover bg-center transition-transform hover:scale-105",
+                        coverImage === item.image
+                          ? "border-purple-300"
+                          : "border-transparent opacity-75",
+                      )}
+                      style={{ backgroundImage: `url("${item.image}")` }}
+                    >
+                      <span className="flex h-full items-end bg-linear-to-t from-black/70 to-transparent p-1.5 text-[10px] font-black text-white">
+                        {item.label}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setCoverImage(suggestCoverImage(name, iconKey).image)
+                  }
+                  className="mt-3 rounded-xl border border-purple-400/30 px-3 py-2 text-xs font-bold text-purple-300 transition-colors hover:bg-purple-400/10"
+                >
+                  Sugerir pelo nome
+                </button>
+              </Field>
             </div>
           )}
         </div>

@@ -17,6 +17,7 @@ type Props = {
   onUndo: (id: string) => void;
   onEdit?: (bill: FixedBill) => void;
   onDelete?: (bill: FixedBill) => void;
+  isUpdating?: boolean;
 };
 
 const STATUS_CONFIG: Record<
@@ -25,8 +26,8 @@ const STATUS_CONFIG: Record<
 > = {
   paid: {
     label: "Pago",
-    color: "text-cyan-400",
-    bg: "bg-cyan-400/10",
+    color: "text-emerald-500",
+    bg: "bg-emerald-500/10",
     icon: <CheckCircleIcon size={22} weight="fill" />,
   },
   pending: {
@@ -55,6 +56,7 @@ export default function BillCard({
   onUndo,
   onEdit,
   onDelete,
+  isUpdating = false,
 }: Props) {
   const config = STATUS_CONFIG[bill.status];
   const fmt = (v: number) =>
@@ -63,30 +65,38 @@ export default function BillCard({
   return (
     <div
       className={cn(
-    "bg-surface/50 border rounded-2xl p-5 flex flex-col gap-4 transition-all hover:border-border-active/70",
+        "bg-surface/50 border rounded-2xl p-4 flex flex-col gap-4 transition-all hover:border-border-active/70",
         bill.status === "overdue"
-          ? "border-red-400/30"
-          : "border-border-default",
+          ? "border-red-400/30 bg-red-400/5"
+          : bill.status === "paid"
+            ? "border-emerald-500/20 bg-emerald-500/5"
+            : "border-border-default",
       )}
     >
-      <div className="flex items-start justify-between">
-        <div className={cn("p-2 rounded-xl", config.bg, config.color)}>
-          {config.icon}
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex min-w-0 items-start gap-3">
+          <div className={cn("shrink-0 p-2 rounded-xl", config.bg, config.color)}>
+            {config.icon}
+          </div>
+          <div className="min-w-0">
+            <p className="truncate text-sm font-black text-text-primary">
+              {bill.name}
+            </p>
+            <p className="mt-1 text-xs text-text-muted">
+              {bill.category} · vence dia{" "}
+              <span className="font-bold text-text-secondary">{bill.dueDay}</span>{" "}
+              · {RECURRENCE_LABEL[bill.recurrence]}
+            </p>
+          </div>
         </div>
-        <div className="flex items-start gap-2">
+        <div className="flex shrink-0 items-start gap-2">
           <div className="text-right">
-            <p className="text-white text-xl font-bold">{fmt(bill.amount)}</p>
-            <span
-              className={cn(
-                "text-xs font-semibold px-2 py-0.5 rounded-full",
-                config.bg,
-                config.color,
-              )}
-            >
-              {bill.status === "paid" ? "✓ Concluído" : config.label}
+            <p className="text-lg font-black text-text-primary">{fmt(bill.amount)}</p>
+            <span className={cn("rounded-full px-2 py-0.5 text-xs font-bold", config.bg, config.color)}>
+              {config.label}
             </span>
           </div>
-          <div className="flex gap-1">
+          <div className="flex gap-0.5">
             <button
               type="button"
               onClick={() => onEdit?.(bill)}
@@ -107,17 +117,8 @@ export default function BillCard({
         </div>
       </div>
 
-      <div>
-        <p className="text-white font-semibold">{bill.name}</p>
-        <p className="text-text-muted text-xs mt-0.5">
-          {bill.category} · vence dia{" "}
-          <span className="font-medium text-text-secondary">{bill.dueDay}</span>{" "}
-          · {RECURRENCE_LABEL[bill.recurrence]}
-        </p>
-      </div>
-
       {bill.status === "paid" ? (
-        <div className="flex items-center justify-between gap-2 py-2.5 px-4 rounded-xl bg-cyan-400/10 text-cyan-400 text-sm font-semibold">
+        <div className="flex items-center justify-between gap-2 rounded-xl bg-emerald-500/10 px-4 py-2.5 text-sm font-bold text-emerald-500">
           <div className="flex items-center gap-2">
             <CheckCircleIcon size={16} />
             Pagamento confirmado
@@ -127,7 +128,7 @@ export default function BillCard({
               e.stopPropagation();
               onUndo(bill.id);
             }}
-            className="p-1 rounded-lg hover:bg-cyan-400/20 transition-colors"
+            className="p-1 rounded-lg transition-colors hover:bg-emerald-500/20"
             title="Desfazer"
           >
             <ArrowCounterClockwiseIcon size={14} />
@@ -136,14 +137,16 @@ export default function BillCard({
       ) : (
         <button
           onClick={() => onMarkPaid(bill.id)}
+          disabled={isUpdating}
           className={cn(
             "w-full py-2.5 rounded-xl text-sm font-bold transition-all",
             bill.status === "overdue"
               ? "bg-red-400 hover:bg-red-300 text-white"
-              : "bg-surface border border-border-default text-text-primary hover:border-border-active hover:text-white",
+              : "bg-surface border border-border-default text-text-primary hover:border-border-active",
+            isUpdating && "cursor-not-allowed opacity-70",
           )}
         >
-          Marcar como pago
+          {isUpdating ? "Confirmando..." : "Marcar como pago"}
         </button>
       )}
     </div>

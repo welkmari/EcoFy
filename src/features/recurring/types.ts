@@ -11,6 +11,8 @@ export type FixedBill = {
   status: BillStatus;
 };
 
+export type BillPayload = Omit<FixedBill, "id" | "status">;
+
 export type Installment = {
   id: string;
   name: string;
@@ -21,4 +23,15 @@ export type Installment = {
   paidInstallments: number;
   dueDay: number;
   startDate: string;
+};
+
+export type InstallmentEditScope = "current" | "future" | "all";
+
+export type InstallmentEditPayload = {
+  name: string;
+  category: string;
+  totalAmount: number;
+  totalInstallments: number;
+  dueDay: number;
+  scope: InstallmentEditScope;
 };

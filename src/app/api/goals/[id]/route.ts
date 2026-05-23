@@ -4,8 +4,11 @@ import { requireUser, toNumber } from "@/lib/api-auth";
 import { db } from "@/lib/db";
 import { savingsGoals } from "@/lib/schema";
 
-const depositSchema = z.object({
-  amount: z.coerce.number().refine((value) => value !== 0),
+const goalUpdateSchema = z.object({
+  title: z.string().trim().min(1).optional(),
+  total: z.coerce.number().positive().optional(),
+  iconKey: z.string().trim().min(1).optional(),
+  coverImage: z.string().trim().url().optional(),
 });
 
 function serializeCompat(row: {
@@ -32,28 +35,21 @@ export async function PATCH(
   const { user, response } = await requireUser();
   if (response) return response;
 
-  const parsed = depositSchema.safeParse(await request.json());
+  const parsed = goalUpdateSchema.safeParse(await request.json());
   if (!parsed.success) {
-    return Response.json({ error: "Invalid deposit" }, { status: 400 });
+    return Response.json({ error: "Invalid savings goal" }, { status: 400 });
   }
 
   const { id } = await params;
-  const [current] = await db
-    .select()
-    .from(savingsGoals)
-    .where(and(eq(savingsGoals.id, id), eq(savingsGoals.userId, user.id)));
-
-  if (!current) {
-    return Response.json({ error: "Savings goal not found" }, { status: 404 });
-  }
-
   const [updated] = await db
     .update(savingsGoals)
     .set({
-      current: Math.max(
-        toNumber(current.current) + parsed.data.amount,
-        0,
-      ).toFixed(2),
+      title: parsed.data.title,
+      total:
+        parsed.data.total === undefined
+          ? undefined
+          : parsed.data.total.toFixed(2),
+      iconKey: parsed.data.iconKey,
     })
     .where(and(eq(savingsGoals.id, id), eq(savingsGoals.userId, user.id)))
     .returning({
@@ -64,5 +60,24 @@ export async function PATCH(
       iconKey: savingsGoals.iconKey,
     });
 
+  if (!updated) {
+    return Response.json({ error: "Savings goal not found" }, { status: 404 });
+  }
+
   return Response.json(serializeCompat(updated));
+}
+
+export async function DELETE(
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const { user, response } = await requireUser();
+  if (response) return response;
+
+  const { id } = await params;
+  await db
+    .delete(savingsGoals)
+    .where(and(eq(savingsGoals.id, id), eq(savingsGoals.userId, user.id)));
+
+  return Response.json({ ok: true });
 }

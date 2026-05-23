@@ -25,6 +25,13 @@ export type CoverOption = {
   style: string;
 };
 
+export type CoverImageOption = {
+  id: string;
+  label: string;
+  image: string;
+  terms: string[];
+};
+
 export type JarIconOption = {
   key: string;
   label: string;
@@ -85,6 +92,90 @@ export const COVERS: CoverOption[] = [
       "radial-gradient(circle, rgba(255,255,255,.15) 1px, transparent 1px) 0 0 / 20px 20px, linear-gradient(135deg,#232526,#414345)",
   },
 ];
+
+export const COVER_IMAGES: CoverImageOption[] = [
+  {
+    id: "travel",
+    label: "Viagem",
+    image:
+      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80",
+    terms: ["viagem", "ferias", "férias", "praia", "airplane", "palm"],
+  },
+  {
+    id: "car",
+    label: "Carro",
+    image:
+      "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1200&q=80",
+    terms: ["carro", "auto", "veiculo", "veículo", "car"],
+  },
+  {
+    id: "home",
+    label: "Casa",
+    image:
+      "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&q=80",
+    terms: ["casa", "apartamento", "moradia", "house"],
+  },
+  {
+    id: "phone",
+    label: "Celular",
+    image:
+      "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=1200&q=80",
+    terms: ["celular", "iphone", "telefone", "phone"],
+  },
+  {
+    id: "study",
+    label: "Estudos",
+    image:
+      "https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=1200&q=80",
+    terms: ["estudo", "curso", "educacao", "educação", "books"],
+  },
+  {
+    id: "business",
+    label: "Negócio",
+    image:
+      "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1200&q=80",
+    terms: ["negocio", "negócio", "trabalho", "briefcase"],
+  },
+  {
+    id: "health",
+    label: "Saúde",
+    image:
+      "https://images.unsplash.com/photo-1505751172876-fa1923c5c528?auto=format&fit=crop&w=1200&q=80",
+    terms: ["saude", "saúde", "medico", "médico", "heart"],
+  },
+  {
+    id: "fitness",
+    label: "Academia",
+    image:
+      "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=1200&q=80",
+    terms: ["academia", "fitness", "barbell"],
+  },
+  {
+    id: "dream",
+    label: "Sonho",
+    image:
+      "https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=1200&q=80",
+    terms: ["meta", "sonho", "poupança", "piggybank", "star"],
+  },
+];
+
+export function normalizeCoverTerm(value: string) {
+  return value
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "");
+}
+
+export function suggestCoverImage(name: string, iconKey: string) {
+  const normalized = normalizeCoverTerm(`${name} ${iconKey}`);
+  return (
+    COVER_IMAGES.find((option) =>
+      option.terms.some((term) =>
+        normalized.includes(normalizeCoverTerm(term)),
+      ),
+    ) ?? COVER_IMAGES[COVER_IMAGES.length - 1]
+  );
+}
 
 export const JAR_ICONS: JarIconOption[] = [
   { key: "airplane", label: "Viagem", icon: AirplaneIcon },

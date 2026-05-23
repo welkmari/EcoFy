@@ -13,7 +13,7 @@ import {
 import ProgressRing from "./ProgressRing";
 import EditTab from "./EditTab";
 import type { Jar } from "../types/JarTypes";
-import { JAR_ICONS } from "../types/JarConfig";
+import { JAR_ICONS, suggestCoverImage } from "../types/JarConfig";
 
 const fmt = (n: number) =>
   n.toLocaleString("pt-BR", {
@@ -70,6 +70,7 @@ export default function DetailModal({
 
   const iconDef = JAR_ICONS.find((i) => i.key === jar.iconKey) ?? JAR_ICONS[0];
   const Icon = iconDef.icon;
+  const coverImage = jar.coverImage ?? suggestCoverImage(jar.name, jar.iconKey).image;
 
   const totalDeposited = jar.history
     .filter((h) => h.amount > 0)
@@ -128,7 +129,9 @@ export default function DetailModal({
         <div
           style={{
             height: 120,
-            background: jar.cover.style,
+            backgroundImage: `linear-gradient(to top, rgba(0,0,0,.7), rgba(0,0,0,.15)), url("${coverImage}")`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
             position: "relative",
             flexShrink: 0,
           }}

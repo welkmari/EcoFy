@@ -126,7 +126,7 @@ export default function AddRecurringModal({
 
         <div className="flex items-center justify-between px-6 pt-5 pb-4">
           <div>
-            <h2 className="text-white font-semibold text-lg">
+            <h2 className="text-text-primary font-semibold text-lg">
               Novo Compromisso
             </h2>
             <p className="text-text-muted text-xs mt-0.5">
@@ -135,7 +135,7 @@ export default function AddRecurringModal({
           </div>
           <button
             onClick={handleClose}
-            className="p-2 rounded-lg text-text-muted hover:text-white hover:bg-white/10 transition-colors"
+            className="p-2 rounded-lg text-text-muted hover:text-text-primary hover:bg-base transition-colors"
           >
             <XIcon size={18} />
           </button>
@@ -301,7 +301,7 @@ function Input({
         placeholder={placeholder}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="bg-base border border-border-default rounded-xl px-3 py-2.5 text-sm text-white placeholder:text-text-muted outline-none focus:border-border-active transition-colors scheme:dark"
+        className="bg-base border border-border-default rounded-xl px-3 py-2.5 text-sm text-text-primary placeholder:text-text-muted outline-none focus:border-border-active transition-colors"
       />
     </div>
   );

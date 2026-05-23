@@ -43,7 +43,7 @@ export default function MonthlyFlowChart({
   ];
 
   return (
-    <div className="flex min-h-[360px] flex-col gap-5 rounded-2xl border border-border-default bg-surface/50 p-5">
+    <div className="flex min-h-[360px] flex-col gap-5 rounded-2xl bg-surface/80 p-5 shadow-[0_14px_34px_rgba(0,0,0,0.18)]">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h3 className="font-semibold text-text-primary">Fluxo do Mês</h3>
@@ -55,7 +55,7 @@ export default function MonthlyFlowChart({
           {bars.map((bar) => (
             <span
               key={bar.key}
-              className={`rounded-full border border-border-default ${bar.bg} px-3 py-1.5 text-xs font-bold ${bar.text}`}
+              className={`rounded-full ${bar.bg} px-3 py-1.5 text-xs font-bold ${bar.text}`}
             >
               {bar.label}: {formatCompactBrl(bar.value)}
             </span>
@@ -83,7 +83,7 @@ export default function MonthlyFlowChart({
                   {formatBrl(bar.value)}
                 </span>
               </div>
-              <div className="h-16 overflow-hidden rounded-xl border border-border-default bg-base">
+              <div className="h-16 overflow-hidden rounded-xl bg-base/80">
                 <div
                   className={`h-full rounded-xl bg-linear-to-r ${bar.color} transition-all duration-700`}
                   style={{
@@ -97,7 +97,7 @@ export default function MonthlyFlowChart({
         })}
 
         {!hasData && (
-          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border-default px-6 py-8 text-center">
+          <div className="flex flex-col items-center justify-center rounded-xl bg-base/45 px-6 py-8 text-center">
             <p className="text-sm font-semibold text-text-primary">Sem dados</p>
             <p className="mt-1 max-w-60 text-xs text-text-muted">
               Adicione entradas ou gastos para ver o total do mês.

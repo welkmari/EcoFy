@@ -1,20 +1,14 @@
 "use client";
 
-import { useState } from "react";
 import { CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react";
 import MetricCard from "./MetricCard";
 import MonthlyFlowChart from "./MonthlyFlowChart";
 import SpendingDonutChart from "./SpendingDonutChart";
 import BudgetHealthBar from "./BudgetHealthBar";
 import { useUserPreferences } from "@/lib/useUserPreferences";
+import { useSelectedMonth } from "@/lib/selectedMonth";
 import { useOverViewData } from "../hooks/useOverViewData";
 import { FancySelect } from "@/components/ui/FancySelect";
-
-function shiftMonth(month: string, offset: number) {
-  const [year, monthIndex] = month.split("-").map(Number);
-  const date = new Date(year, (monthIndex || 1) - 1 + offset, 1);
-  return date.toISOString().slice(0, 7);
-}
 
 function getMonthOptions() {
   const base = new Date();
@@ -37,7 +31,7 @@ function getPeriodHint(month: string) {
 }
 
 export default function OverViewPage() {
-  const [month, setMonth] = useState(() => new Date().toISOString().slice(0, 7));
+  const { month, setMonth, shiftMonth } = useSelectedMonth();
   const { data, isLoading, isError } = useOverViewData(month);
   const { preferences, savePreferences } = useUserPreferences();
   const formatMoney = (value: number) =>
@@ -68,10 +62,10 @@ export default function OverViewPage() {
             {getPeriodHint(month)}
           </p>
         </div>
-        <div className="flex w-full items-center gap-2 rounded-2xl border border-border-default bg-surface/70 p-1.5 sm:w-auto">
+        <div className="flex w-full items-center gap-2 rounded-2xl bg-surface/80 p-1.5 shadow-[0_12px_28px_rgba(0,0,0,0.16)] sm:w-auto">
           <button
             type="button"
-            onClick={() => setMonth((current) => shiftMonth(current, -1))}
+            onClick={() => shiftMonth(-1)}
             className="flex h-9 w-9 items-center justify-center rounded-xl text-text-muted transition-colors hover:bg-base hover:text-text-primary"
             aria-label="Mês anterior"
           >
@@ -85,7 +79,7 @@ export default function OverViewPage() {
           />
           <button
             type="button"
-            onClick={() => setMonth((current) => shiftMonth(current, 1))}
+            onClick={() => shiftMonth(1)}
             className="flex h-9 w-9 items-center justify-center rounded-xl text-text-muted transition-colors hover:bg-base hover:text-text-primary"
             aria-label="Próximo mês"
           >
@@ -137,7 +131,10 @@ export default function OverViewPage() {
           <MonthlyFlowChart data={data?.flow ?? []} periodLabel={data?.period.label} />
         </div>
         <div className="min-w-0">
-          <SpendingDonutChart data={data?.spending ?? []} />
+          <SpendingDonutChart
+            data={data?.spending ?? []}
+            periodLabel={data?.period.label}
+          />
         </div>
       </div>
 
@@ -147,6 +144,7 @@ export default function OverViewPage() {
           totalSpent={data?.budget.totalSpent ?? 0}
           totalBudget={preferences.monthlyBudget}
           onBudgetChange={(monthlyBudget) => savePreferences({ monthlyBudget })}
+          periodLabel={data?.period.label}
         />
       </div>
     </div>

@@ -113,7 +113,7 @@ export default function MetricCard({
   return (
     <div
       className={cn(
-        "flex min-w-0 flex-1 flex-col gap-3 rounded-2xl border border-gray-800 bg-surface/50 p-4 sm:gap-4 sm:p-5 xl:p-6",
+        "flex min-w-0 flex-1 flex-col gap-3 rounded-2xl bg-surface/80 p-4 shadow-[0_14px_34px_rgba(0,0,0,0.18)] sm:gap-4 sm:p-5 xl:p-6",
         className,
       )}
     >
@@ -121,7 +121,7 @@ export default function MetricCard({
         <div className="min-w-0 flex-1">
           <h2
             ref={textRef}
-            className="truncate font-bold text-white sm:text-2xl xl:text-3xl"
+            className="truncate font-bold text-text-primary sm:text-2xl xl:text-3xl"
             style={{
               fontSize: "clamp(1.25rem, 5vw, 1.875rem)",
               lineHeight: 1.2,
@@ -130,7 +130,7 @@ export default function MetricCard({
           >
             {displayValue}
           </h2>
-          <p className="text-sm text-gray-400">{label}</p>
+          <p className="text-sm text-text-secondary">{label}</p>
         </div>
         <div className={cn("shrink-0 rounded-xl p-2", bg, color)}>
           <Icon size={22} />
@@ -146,7 +146,7 @@ export default function MetricCard({
           )}
           {change}
         </span>
-        <span className="text-gray-500">{percentage}</span>
+        <span className="text-text-muted">{percentage}</span>
       </div>
     </div>
   );

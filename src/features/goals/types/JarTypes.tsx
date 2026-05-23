@@ -12,6 +12,7 @@ export type Jar = {
   name: string;
   iconKey: JarIconKey;
   cover: CoverOption;
+  coverImage?: string;
   goal: number;
   current: number;
   targetMonth?: string;

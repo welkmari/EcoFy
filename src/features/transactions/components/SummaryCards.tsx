@@ -54,7 +54,7 @@ export default function SummaryCards({ transactions, month }: Props) {
 
   return (
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-      <div className="flex min-h-36 items-center justify-between rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-5">
+      <div className="flex min-h-36 items-center justify-between rounded-2xl bg-surface/78 p-5 shadow-[0_14px_34px_rgba(0,0,0,0.16)]">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.14em] text-cyan-400/75">
             Entradas
@@ -62,16 +62,16 @@ export default function SummaryCards({ transactions, month }: Props) {
           <p className="mt-2 text-3xl font-black text-cyan-400 sm:text-4xl">
             {fmt(entradas)}
           </p>
-          <span className="mt-3 inline-flex rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-xs font-bold text-cyan-300">
+          <span className="mt-3 inline-flex rounded-full bg-cyan-400/[0.08] px-3 py-1 text-xs font-bold text-cyan-400">
             {variation(entradas, previousEntradas)} vs mês passado
           </span>
         </div>
-        <div className="rounded-2xl bg-cyan-400/15 p-4 text-cyan-400">
+        <div className="rounded-2xl bg-cyan-400/[0.08] p-4 text-cyan-400">
           <ArrowCircleUpIcon size={32} weight="fill" />
         </div>
       </div>
 
-      <div className="flex min-h-36 items-center justify-between rounded-2xl border border-red-400/20 bg-red-400/10 p-5">
+      <div className="flex min-h-36 items-center justify-between rounded-2xl bg-surface/78 p-5 shadow-[0_14px_34px_rgba(0,0,0,0.16)]">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.14em] text-red-400/75">
             Saídas
@@ -81,16 +81,16 @@ export default function SummaryCards({ transactions, month }: Props) {
           </p>
           <span
             className={cn(
-              "mt-3 inline-flex rounded-full border px-3 py-1 text-xs font-bold",
+              "mt-3 inline-flex rounded-full px-3 py-1 text-xs font-bold",
               gastos <= previousGastos
-                ? "border-cyan-400/20 bg-cyan-400/10 text-cyan-300"
-                : "border-red-400/20 bg-red-400/10 text-red-300",
+                ? "bg-cyan-400/[0.08] text-cyan-400"
+                : "bg-red-400/[0.08] text-red-400",
             )}
           >
             {variation(gastos, previousGastos)} vs mês passado
           </span>
         </div>
-        <div className="rounded-2xl bg-red-400/15 p-4 text-red-400">
+        <div className="rounded-2xl bg-red-400/[0.08] p-4 text-red-400">
           <ArrowCircleDownIcon size={32} weight="fill" />
         </div>
       </div>

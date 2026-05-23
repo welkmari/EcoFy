@@ -68,5 +68,6 @@ export const savingsGoals = pgTable("savings_goals", {
     .default("0"),
   total: numeric("total", { precision: 10, scale: 2 }).notNull(),
   iconKey: text("icon_key").notNull().default("target"),
+  coverImage: text("cover_image"),
   createdAt: timestamp("created_at").defaultNow(),
 });

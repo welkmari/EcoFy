@@ -11,12 +11,13 @@ import {
   CaretRightIcon,
   SignOutIcon,
   BellRingingIcon,
-  WalletIcon,
+  CreditCardIcon,
   ListIcon,
   CaretLeftIcon,
   LightningIcon,
   TargetIcon,
   UsersIcon,
+  BagIcon,
 } from "@phosphor-icons/react";
 import Logo from "@/components/layout/Logo";
 import { cn } from "@/lib/cn";
@@ -31,7 +32,7 @@ const NAV_SECTIONS = [
     color: "text-purple-500",
     items: [
       { href: "/overview", label: "Visão Geral", icon: SquaresFourIcon },
-      { href: "/transactions", label: "Transações", icon: WalletIcon },
+      { href: "/payments", label: "Pagamentos", icon: CreditCardIcon },
       { href: "/recurring", label: "Contas Fixas", icon: BellRingingIcon },
     ],
   },
@@ -40,7 +41,10 @@ const NAV_SECTIONS = [
     label: "Planejamento",
     icon: CurrencyDollarIcon,
     color: "text-purple-400",
-    items: [{ href: "/goals", label: "Metas Financeiras", icon: TargetIcon }],
+    items: [
+      { href: "/goals", label: "Metas Financeiras", icon: TargetIcon },
+      { href: "/wishlist", label: "Lista de desejos", icon: BagIcon },
+    ],
   },
 ] as const;
 

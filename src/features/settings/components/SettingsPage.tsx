@@ -54,9 +54,9 @@ export default function SettingsPage() {
   };
 
   return (
-    <main className="h-full overflow-y-auto scrollbar-hide p-4 sm:p-8">
+    <main className="h-full overflow-y-auto p-4 pb-24 scrollbar-hide sm:p-8 md:pb-8">
       <div className="mx-auto flex max-w-5xl flex-col gap-7">
-        <header className="flex flex-wrap items-end justify-between gap-4">
+        <header className="flex flex-col items-start justify-between gap-4 lg:flex-row lg:items-end">
           <div className="flex items-center gap-3">
             <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-purple-400/25 bg-purple-500/10 text-purple-300">
               <GearSixIcon size={24} />
@@ -259,7 +259,7 @@ export default function SettingsPage() {
           </SettingsCard>
         )}
 
-        <div className="flex justify-end gap-3">
+        <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
           <button
             onClick={discard}
             disabled={!isDirty}
@@ -289,7 +289,7 @@ function SettingsCard({
 }) {
   return (
     <section className="overflow-hidden rounded-2xl border border-border-default bg-surface/50">
-      <div className="border-b border-border-default px-6 py-5">
+      <div className="border-b border-border-default px-4 py-5 sm:px-6">
         <h2 className="text-lg font-bold text-text-primary">{title}</h2>
       </div>
       <div className="divide-y divide-border-default">{children}</div>
@@ -309,7 +309,7 @@ function SettingRow({
   control: React.ReactNode;
 }) {
   return (
-    <div className="grid gap-4 px-6 py-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+    <div className="grid gap-4 px-4 py-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:px-6">
       <div className="flex min-w-0 items-center gap-4">
         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border-default bg-base/70 text-text-secondary">
           {icon}
@@ -357,7 +357,7 @@ function ActionRow({
       </div>
       <button
         onClick={onClick}
-        className="rounded-xl border border-border-active bg-base/60 px-4 py-2 text-sm font-bold text-text-primary transition-colors hover:bg-purple-500/20"
+        className="w-full rounded-xl border border-border-active bg-base/60 px-4 py-2 text-sm font-bold text-text-primary transition-colors hover:bg-purple-500/20 sm:w-auto"
       >
         {action}
       </button>

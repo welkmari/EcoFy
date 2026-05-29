@@ -226,14 +226,14 @@ export default function TransactionsPage() {
   };
 
   return (
-    <div className="flex flex-col gap-6 p-6 h-full overflow-y-auto scrollbar-hide">
+    <div className="flex h-full flex-col gap-5 overflow-y-auto p-4 pb-24 scrollbar-hide sm:gap-6 sm:p-6 md:pb-6">
       {/* Header */}
       <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
-        <div className="flex items-center gap-3">
+        <div className="flex min-w-0 items-center gap-3">
           <div className="rounded-xl bg-surface/80 p-2 text-purple-400 shadow-[0_10px_24px_rgba(0,0,0,0.16)]">
             <ArrowsDownUpIcon size={22} />
           </div>
-          <div>
+          <div className="min-w-0">
             <h1 className="text-text-primary text-2xl font-bold">Transações</h1>
             <p className="text-text-muted text-sm">
               Gerencie entradas, gastos e projeções do mês.
@@ -266,7 +266,7 @@ export default function TransactionsPage() {
               setEditingTransaction(null);
               setModalOpen(true);
             }}
-            className="flex items-center gap-2 bg-purple-500 hover:bg-purple-600 text-white font-bold px-4 py-2 rounded-xl text-sm transition-colors"
+            className="flex items-center justify-center gap-2 rounded-xl bg-purple-500 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-purple-600"
           >
             <PlusIcon size={16} />
             Nova Transação
@@ -324,7 +324,7 @@ export default function TransactionsPage() {
             className="w-full rounded-xl bg-base/70 py-2.5 pl-11 pr-4 text-sm text-text-primary outline-none ring-1 ring-transparent transition placeholder:text-text-muted focus:ring-purple-500/35"
           />
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
         {FILTER_OPTIONS.map((opt) => (
           <button
             key={opt.value}
@@ -339,7 +339,7 @@ export default function TransactionsPage() {
             {opt.label}
           </button>
         ))}
-        <span className="ml-auto text-text-muted text-xs">
+        <span className="ml-auto text-xs text-text-muted max-sm:w-full">
           {filtered.length} transaç{filtered.length === 1 ? "ão" : "ões"}
         </span>
         </div>

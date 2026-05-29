@@ -17,6 +17,7 @@ function serializeCompat(row: {
   current: string;
   total: string;
   iconKey: string;
+  coverImage?: string | null;
 }) {
   return {
     id: row.id,
@@ -24,7 +25,7 @@ function serializeCompat(row: {
     current: toNumber(row.current),
     total: toNumber(row.total),
     iconKey: row.iconKey,
-    coverImage: null,
+    coverImage: row.coverImage ?? null,
   };
 }
 
@@ -50,6 +51,7 @@ export async function PATCH(
           ? undefined
           : parsed.data.total.toFixed(2),
       iconKey: parsed.data.iconKey,
+      coverImage: parsed.data.coverImage,
     })
     .where(and(eq(savingsGoals.id, id), eq(savingsGoals.userId, user.id)))
     .returning({
@@ -58,6 +60,7 @@ export async function PATCH(
       current: savingsGoals.current,
       total: savingsGoals.total,
       iconKey: savingsGoals.iconKey,
+      coverImage: savingsGoals.coverImage,
     });
 
   if (!updated) {

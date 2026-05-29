@@ -1,5 +1,7 @@
 "use client";
 
+import { cn } from "@/lib/cn";
+
 type Props = {
   planId: string;
   highlighted?: boolean;
@@ -15,12 +17,14 @@ export default function SubscribeButton({
 }: Props) {
   return (
     <button
+      type="button"
       onClick={() => onSubscribe(planId)}
-      className={`w-full rounded-xl py-3 text-sm font-bold transition-all active:scale-95 ${
+      className={cn(
+        "w-full rounded-lg px-4 py-3 text-sm font-black transition-colors active:scale-[0.99]",
         highlighted
-          ? "bg-linear-to-r from-purple-600 to-cyan-500 text-white shadow-[0_0_20px_rgba(139,92,246,0.3)] hover:opacity-90"
-          : "border border-border-default bg-base text-text-secondary hover:border-purple-500/40 hover:text-text-primary"
-      }`}
+          ? "bg-purple-500 text-white hover:bg-purple-600"
+          : "border border-border-default bg-base/55 text-text-secondary hover:border-border-active hover:text-text-primary",
+      )}
     >
       {label}
     </button>

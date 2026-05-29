@@ -13,10 +13,12 @@ import {
 import SavingsCard from "./SavingCards";
 import DetailModal from "./DetailModal";
 import CreateModal from "./CreateModal";
+import { useToast } from "@/components/feedback/ToastProvider";
 import type { Jar } from "@/features/goals/types/JarTypes";
 import { useSelectedMonth } from "@/lib/selectedMonth";
 import { COVERS } from "../types/JarConfig";
 import type { JarIconKey } from "../types/JarConfig";
+import type { OverviewData } from "@/features/overview/hooks/useOverViewData";
 
 const uid = () => Math.random().toString(36).slice(2);
 
@@ -61,7 +63,12 @@ async function createGoal(data: Omit<Jar, "id">) {
       coverImage: data.coverImage,
     }),
   });
-  if (!response.ok) throw new Error("Falha ao criar cofrinho");
+  if (!response.ok) {
+    const payload = (await response.json().catch(() => null)) as {
+      error?: string;
+    } | null;
+    throw new Error(payload?.error ?? "Falha ao criar cofrinho");
+  }
   return toJar((await response.json()) as GoalResponse);
 }
 
@@ -113,6 +120,7 @@ export default function GoalsPage() {
   const carouselRef = useRef<HTMLDivElement>(null);
   const { month } = useSelectedMonth();
   const queryClient = useQueryClient();
+  const { showToast } = useToast();
 
   const {
     data: jars = [],
@@ -124,6 +132,38 @@ export default function GoalsPage() {
   });
 
   const selectedJar = jars.find((j) => j.id === selected) ?? null;
+
+  const updateInvestmentsMetric = ({
+    currentDelta = 0,
+    targetDelta = 0,
+  }: {
+    currentDelta?: number;
+    targetDelta?: number;
+  }) => {
+    queryClient.setQueriesData<OverviewData>(
+      { queryKey: ["overview"] },
+      (current) => {
+        if (!current) return current;
+        const investments = Math.max(
+          (current.metrics.investments ?? 0) + currentDelta,
+          0,
+        );
+        const investmentsTarget = Math.max(
+          (current.metrics.investmentsTarget ?? 0) + targetDelta,
+          0,
+        );
+        return {
+          ...current,
+          metrics: {
+            ...current.metrics,
+            investments,
+            investmentsTarget,
+            investmentsRemaining: Math.max(investmentsTarget - investments, 0),
+          },
+        };
+      },
+    );
+  };
 
   const updateGoalInCache = (updated: Jar) => {
     queryClient.setQueryData<Jar[]>(["goals"], (current = []) =>
@@ -149,7 +189,22 @@ export default function GoalsPage() {
         created,
         ...current,
       ]);
+      updateInvestmentsMetric({
+        currentDelta: created.current,
+        targetDelta: created.goal,
+      });
       queryClient.invalidateQueries({ queryKey: ["overview"] });
+      showToast({ title: "Cofrinho criado", type: "success" });
+    },
+    onError: (error) => {
+      showToast({
+        title:
+          error instanceof Error
+            ? error.message
+            : "Não consegui criar o cofrinho",
+        description: "Confira os dados e tente novamente.",
+        type: "error",
+      });
     },
   });
 
@@ -188,6 +243,7 @@ export default function GoalsPage() {
             },
       ),
     );
+    updateInvestmentsMetric({ currentDelta: amount });
     movementMutation.mutate({ id, amount });
   };
 
@@ -211,26 +267,43 @@ export default function GoalsPage() {
             },
       ),
     );
+    updateInvestmentsMetric({ currentDelta: -amount });
     movementMutation.mutate({ id, amount: -amount });
   };
 
   const handleEdit = (id: string, data: Partial<Jar>) => {
+    const previous = queryClient
+      .getQueryData<Jar[]>(["goals"])
+      ?.find((jar) => jar.id === id);
+
     queryClient.setQueryData<Jar[]>(["goals"], (current = []) =>
       current.map((j) => (j.id !== id ? j : { ...j, ...data })),
     );
+    if (previous && typeof data.goal === "number") {
+      updateInvestmentsMetric({ targetDelta: data.goal - previous.goal });
+    }
     editMutation.mutate({ id, data });
   };
 
   const handleDelete = (id: string) => {
+    const deleted = queryClient
+      .getQueryData<Jar[]>(["goals"])
+      ?.find((jar) => jar.id === id);
     queryClient.setQueryData<Jar[]>(["goals"], (current = []) =>
       current.filter((j) => j.id !== id),
     );
+    if (deleted) {
+      updateInvestmentsMetric({
+        currentDelta: -deleted.current,
+        targetDelta: -deleted.goal,
+      });
+    }
     setSelected(null);
     deleteMutation.mutate(id);
   };
 
-  const handleCreate = (data: Omit<Jar, "id">) => {
-    createMutation.mutate(data);
+  const handleCreate = async (data: Omit<Jar, "id">) => {
+    await createMutation.mutateAsync(data);
   };
 
   const scrollCarousel = (direction: "left" | "right") => {
@@ -413,6 +486,7 @@ export default function GoalsPage() {
         <CreateModal
           onClose={() => setShowCreate(false)}
           onCreate={handleCreate}
+          isCreating={createMutation.isPending}
         />
       )}
     </div>

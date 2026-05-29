@@ -33,7 +33,7 @@ export default function Header({
   const ThemeIcon = isDark ? MoonIcon : SunIcon;
 
   return (
-    <header className="flex w-full flex-col gap-4 bg-base px-6 py-6 sm:flex-row sm:items-center sm:justify-between lg:px-5">
+    <header className="flex w-full flex-col gap-4 bg-base px-4 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-5">
       
       <div className="flex min-w-0 flex-col justify-center">
         <h1 className="truncate text-2xl font-black tracking-tight text-text-primary sm:text-2xl">
@@ -43,7 +43,7 @@ export default function Header({
       </div>
 
       {/* Lado Direito: Ações */}
-      <div className="flex flex-wrap items-center justify-between gap-2 sm:justify-end lg:gap-3">
+      <div className="flex w-full flex-wrap items-center justify-between gap-2 sm:w-auto sm:justify-end lg:gap-3">
         
         {/* Botão de Tema */}
         <button
@@ -100,7 +100,7 @@ export default function Header({
         </button>
 
         {/* Botão do Perfil do Usuário */}
-        <button className="flex h-11 items-center gap-2.5 rounded-2xl border border-border-default bg-surface px-3 shadow-sm transition-all hover:border-border-active hover:bg-surface">
+        <button className="flex h-11 min-w-0 items-center gap-2.5 rounded-2xl border border-border-default bg-surface px-3 shadow-sm transition-all hover:border-border-active hover:bg-surface">
           <div className="relative flex shrink-0 items-center justify-center">
             {avatar ? (
               // eslint-disable-next-line @next/next/no-img-element

@@ -12,17 +12,6 @@ const goalSchema = z.object({
   coverImage: z.string().trim().url().optional(),
 });
 
-function serialize(row: typeof savingsGoals.$inferSelect) {
-  return {
-    id: row.id,
-    title: row.title,
-    current: toNumber(row.current),
-    total: toNumber(row.total),
-    iconKey: row.iconKey,
-    coverImage: row.coverImage ?? null,
-  };
-}
-
 function serializeCompat(row: {
   id: string;
   title: string;
@@ -35,9 +24,9 @@ function serializeCompat(row: {
     id: row.id,
     title: row.title,
     current: toNumber(row.current),
-    total: toNumber(row.total),
-    iconKey: row.iconKey,
-    coverImage: row.coverImage ?? null,
+      total: toNumber(row.total),
+      iconKey: row.iconKey,
+      coverImage: row.coverImage ?? null,
   };
 }
 
@@ -52,6 +41,7 @@ export async function GET() {
       current: savingsGoals.current,
       total: savingsGoals.total,
       iconKey: savingsGoals.iconKey,
+      coverImage: savingsGoals.coverImage,
     })
     .from(savingsGoals)
     .where(eq(savingsGoals.userId, user.id))
@@ -64,23 +54,42 @@ export async function POST(request: Request) {
   const { user, response } = await requireUser();
   if (response) return response;
 
-  const parsed = goalSchema.safeParse(await request.json());
-  if (!parsed.success) {
-    return Response.json({ error: "Invalid savings goal" }, { status: 400 });
+  try {
+    const parsed = goalSchema.safeParse(await request.json());
+    if (!parsed.success) {
+      return Response.json(
+        { error: "Dados inválidos para criar o cofrinho" },
+        { status: 400 },
+      );
+    }
+
+    const values = {
+      userId: user.id,
+      title: parsed.data.title,
+      current: parsed.data.current.toFixed(2),
+      total: parsed.data.total.toFixed(2),
+      iconKey: parsed.data.iconKey,
+      coverImage: parsed.data.coverImage,
+    };
+
+    const [created] = await db
+      .insert(savingsGoals)
+      .values(values)
+      .returning({
+        id: savingsGoals.id,
+        title: savingsGoals.title,
+        current: savingsGoals.current,
+        total: savingsGoals.total,
+        iconKey: savingsGoals.iconKey,
+        coverImage: savingsGoals.coverImage,
+      });
+
+    return Response.json(serializeCompat(created), { status: 201 });
+  } catch (error) {
+    console.error("Failed to create savings goal", error);
+    return Response.json(
+      { error: "Não foi possível criar o cofrinho" },
+      { status: 500 },
+    );
   }
-
-  const values = {
-    userId: user.id,
-    title: parsed.data.title,
-    current: parsed.data.current.toFixed(2),
-    total: parsed.data.total.toFixed(2),
-    iconKey: parsed.data.iconKey,
-  };
-
-  const [created] = await db
-    .insert(savingsGoals)
-    .values(values)
-    .returning();
-
-  return Response.json(serialize(created), { status: 201 });
 }

@@ -4,18 +4,20 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   BellRingingIcon,
+  BagIcon,
+  CreditCardIcon,
   SquaresFourIcon,
   TargetIcon,
   UsersIcon,
-  WalletIcon,
 } from "@phosphor-icons/react";
 import { cn } from "@/lib/cn";
 
 const items = [
   { href: "/overview", label: "Início", icon: SquaresFourIcon },
-  { href: "/transactions", label: "Gastos", icon: WalletIcon },
+  { href: "/payments", label: "Pagar", icon: CreditCardIcon },
   { href: "/recurring", label: "Fixas", icon: BellRingingIcon },
   { href: "/goals", label: "Metas", icon: TargetIcon },
+  { href: "/wishlist", label: "Desejos", icon: BagIcon },
   { href: "/users", label: "Perfil", icon: UsersIcon },
 ] as const;
 
@@ -24,7 +26,7 @@ export default function MobileDashboardNav() {
 
   return (
     <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border-default bg-base/95 px-2 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-2 backdrop-blur md:hidden">
-      <div className="grid grid-cols-5 gap-1">
+      <div className="grid grid-cols-6 gap-1">
         {items.map(({ href, label, icon: Icon }) => {
           const active = pathname === href;
 

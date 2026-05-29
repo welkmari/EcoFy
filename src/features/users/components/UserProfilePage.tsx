@@ -74,10 +74,10 @@ export default function UserProfilePage() {
   };
 
   return (
-    <main className="h-full overflow-y-auto scrollbar-hide p-8">
+    <main className="h-full overflow-y-auto p-4 pb-24 scrollbar-hide sm:p-8 md:pb-8">
       <div className="mx-auto flex max-w-7xl flex-col gap-7">
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
+          <div className="min-w-0">
             <h1 className="text-3xl font-black text-text-primary">Minha Conta</h1>
             <p className="mt-1 text-sm text-text-muted">
               Personalize como seu perfil aparece no EcoFy.
@@ -86,7 +86,7 @@ export default function UserProfilePage() {
           <button
             onClick={() => (isEditing ? save() : setIsEditing(true))}
             disabled={isSaving}
-            className="flex items-center gap-2 rounded-xl border border-border-active bg-surface px-4 py-2.5 text-sm font-bold text-text-primary transition-colors hover:bg-purple-500/15 disabled:opacity-60"
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-border-active bg-surface px-4 py-2.5 text-sm font-bold text-text-primary transition-colors hover:bg-purple-500/15 disabled:opacity-60 sm:w-auto"
           >
             {isEditing ? <FloppyDiskIcon size={18} /> : <PencilSimpleIcon size={18} />}
             {isSaving ? "Salvando..." : isEditing ? "Salvar Perfil" : "Editar Perfil"}
@@ -100,7 +100,7 @@ export default function UserProfilePage() {
           </div>
         )}
 
-        <section className="rounded-2xl border border-border-default bg-surface/50 p-8">
+        <section className="rounded-2xl border border-border-default bg-surface/50 p-4 sm:p-8">
           <div className="flex flex-col gap-6 border-b border-border-default pb-8 md:flex-row md:items-center">
             <AvatarPreview
               name={form.displayName}
@@ -140,7 +140,7 @@ export default function UserProfilePage() {
               ) : (
                 <>
                   <div className="flex flex-wrap items-center gap-3">
-                    <h2 className="text-3xl font-black text-text-primary">
+                    <h2 className="text-2xl font-black text-text-primary sm:text-3xl">
                       {preferences.displayName}
                     </h2>
                     <span className="rounded-full bg-purple-500/15 px-3 py-1 text-xs font-bold text-purple-300">
@@ -231,7 +231,7 @@ function AvatarPreview({
         )}
       </div>
       {editing && (
-        <label className="w-64">
+        <label className="w-full max-w-64">
           <span className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-text-muted">
             <ImageSquareIcon size={14} />
             URL da foto
@@ -331,8 +331,8 @@ function SecurityRow({
   badge?: string;
 }) {
   return (
-    <div className="flex items-center justify-between gap-4 rounded-xl px-3 py-3 text-sm">
-      <div className="flex items-center gap-3">
+    <div className="flex flex-col gap-3 rounded-xl px-3 py-3 text-sm sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex min-w-0 items-center gap-3">
         <ShieldCheckIcon size={18} className="text-text-muted" />
         <span className="font-semibold text-text-primary">{label}</span>
         {badge && (

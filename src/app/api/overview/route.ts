@@ -61,6 +61,8 @@ export async function GET(request: Request) {
     .reduce((sum, item) => sum + toNumber(item.amount), 0);
   const monthlyBills = billRows.reduce((sum, item) => sum + toNumber(item.amount), 0);
   const investments = goalRows.reduce((sum, item) => sum + toNumber(item.current), 0);
+  const investmentsTarget = goalRows.reduce((sum, item) => sum + toNumber(item.total), 0);
+  const investmentsRemaining = Math.max(investmentsTarget - investments, 0);
 
   const flowByDay = new Map<string, { day: string; entradas: number; saidas: number }>();
   for (const item of transactionRows) {
@@ -109,6 +111,8 @@ export async function GET(request: Request) {
     metrics: {
       income,
       investments,
+      investmentsTarget,
+      investmentsRemaining,
       expenses,
       monthlyBills,
     },

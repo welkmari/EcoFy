@@ -16,10 +16,11 @@ const SUGGESTED_GOALS = [1000, 5000, 10000, 25000, 50000];
 
 type Props = {
   onClose: () => void;
-  onCreate: (data: Omit<Jar, "id">) => void;
+  onCreate: (data: Omit<Jar, "id">) => Promise<void> | void;
+  isCreating?: boolean;
 };
 
-export default function CreateModal({ onClose, onCreate }: Props) {
+export default function CreateModal({ onClose, onCreate, isCreating = false }: Props) {
   const [step, setStep] = useState(1);
   const [name, setName] = useState("");
   const [goal, setGoal] = useState("");
@@ -48,9 +49,9 @@ export default function CreateModal({ onClose, onCreate }: Props) {
     return Math.max((goalValue - initialValue) / months, 0);
   }, [goalValue, initialValue, targetMonth]);
 
-  const create = () => {
+  const create = async () => {
     if (!name.trim() || goalValue <= 0) return;
-    onCreate({
+    await onCreate({
       name: name.trim(),
       goal: goalValue,
       current: initialValue,
@@ -298,10 +299,11 @@ export default function CreateModal({ onClose, onCreate }: Props) {
           ) : (
             <button
               onClick={create}
+              disabled={isCreating}
               className="flex items-center gap-2 rounded-xl bg-purple-500 px-5 py-2.5 text-sm font-black text-slate-950 transition-colors hover:bg-purple-400"
             >
               <CheckCircleIcon size={17} weight="fill" />
-              Criar cofrinho
+              {isCreating ? "Criando..." : "Criar cofrinho"}
             </button>
           )}
         </div>

@@ -29,7 +29,7 @@ export default function OnboardingCoach() {
 
   const isDashboard = [
     "/overview",
-    "/transactions",
+    "/payments",
     "/recurring",
     "/goals",
     "/settings",

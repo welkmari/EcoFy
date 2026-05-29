@@ -35,8 +35,9 @@ type RecurringData = {
   installments: Installment[];
 };
 
-async function fetchRecurring() {
-  const response = await fetch("/api/recurring");
+async function fetchRecurring(month: string) {
+  const params = new URLSearchParams({ month });
+  const response = await fetch(`/api/recurring?${params.toString()}`);
   if (!response.ok) throw new Error("Falha ao carregar recorrentes");
   return (await response.json()) as RecurringData;
 }
@@ -54,14 +55,16 @@ async function createBill(bill: Omit<FixedBill, "id" | "status">) {
 async function updateBillStatus({
   id,
   status,
+  month,
 }: {
   id: string;
   status: BillStatus;
+  month: string;
 }) {
   const response = await fetch(`/api/recurring/bills/${id}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ status }),
+    body: JSON.stringify({ status, month }),
   });
   if (![200, 201].includes(response.status)) {
     throw new Error("Falha ao atualizar conta fixa");
@@ -155,8 +158,8 @@ export default function RecurringPage() {
   const { month } = useSelectedMonth();
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["recurring"],
-    queryFn: fetchRecurring,
+    queryKey: ["recurring", month],
+    queryFn: () => fetchRecurring(month),
   });
 
   const bills = data?.bills ?? [];
@@ -164,6 +167,7 @@ export default function RecurringPage() {
 
   const invalidateRecurring = () => {
     queryClient.invalidateQueries({ queryKey: ["recurring"] });
+    queryClient.invalidateQueries({ queryKey: ["transactions"] });
     queryClient.invalidateQueries({ queryKey: ["overview"] });
   };
 
@@ -179,9 +183,12 @@ export default function RecurringPage() {
     mutationFn: updateBillStatus,
     onMutate: async ({ id, status }) => {
       setUpdatingBillId(id);
-      await queryClient.cancelQueries({ queryKey: ["recurring"] });
-      const previous = queryClient.getQueryData<RecurringData>(["recurring"]);
-      queryClient.setQueryData<RecurringData>(["recurring"], (current) => {
+      await queryClient.cancelQueries({ queryKey: ["recurring", month] });
+      const previous = queryClient.getQueryData<RecurringData>([
+        "recurring",
+        month,
+      ]);
+      queryClient.setQueryData<RecurringData>(["recurring", month], (current) => {
         if (!current) return current;
         return {
           ...current,
@@ -193,7 +200,7 @@ export default function RecurringPage() {
       return { previous };
     },
     onSuccess: (updated) => {
-      queryClient.setQueryData<RecurringData>(["recurring"], (current) => {
+      queryClient.setQueryData<RecurringData>(["recurring", month], (current) => {
         if (!current) return current;
         return {
           ...current,
@@ -202,6 +209,7 @@ export default function RecurringPage() {
           ),
         };
       });
+      queryClient.invalidateQueries({ queryKey: ["transactions"] });
       queryClient.invalidateQueries({ queryKey: ["overview"] });
       if (updated.status === "paid") {
         showToast({
@@ -213,7 +221,7 @@ export default function RecurringPage() {
     },
     onError: (_error, _variables, context) => {
       if (context?.previous) {
-        queryClient.setQueryData(["recurring"], context.previous);
+        queryClient.setQueryData(["recurring", month], context.previous);
       }
       showToast({
         title: "Não foi possível confirmar o pagamento. Tente novamente.",
@@ -291,7 +299,9 @@ export default function RecurringPage() {
   });
 
   const filteredBills =
-    billFilter === "all" ? bills : bills.filter((b) => b.status === billFilter);
+    billFilter === "all"
+      ? bills
+      : bills.filter((b) => b.status === billFilter);
   const sortedBills = [...filteredBills].sort((a, b) => {
     const order: Record<BillStatus, number> = { pending: 0, overdue: 1, paid: 2 };
     return order[a.status] - order[b.status] || a.dueDay - b.dueDay;
@@ -302,17 +312,17 @@ export default function RecurringPage() {
     const bill = bills.find((b) => b.id === id);
     if (!bill) return;
     setToast({ billId: id, previousStatus: bill.status });
-    billStatusMutation.mutate({ id, status: "paid" });
+    billStatusMutation.mutate({ id, status: "paid", month });
   };
 
-  const handleUndo = useCallback(() => {
-    if (!toast) return;
+  const handleUndo = useCallback((id: string) => {
     billStatusMutation.mutate({
-      id: toast.billId,
-      status: toast.previousStatus,
+      id,
+      status: toast?.billId === id ? toast.previousStatus : "pending",
+      month,
     });
     setToast(null);
-  }, [billStatusMutation, toast]);
+  }, [billStatusMutation, month, toast]);
 
   const handleToggleInstallment = (id: string, paidInstallments: number) => {
     installmentMutation.mutate({ id, paidInstallments });
@@ -330,10 +340,10 @@ export default function RecurringPage() {
     createInstallmentMutation.mutate(i);
 
   return (
-    <div className="flex flex-col gap-8 p-6 h-full overflow-y-auto scrollbar-hide">
+    <div className="flex h-full flex-col gap-6 overflow-y-auto p-4 pb-24 scrollbar-hide sm:gap-8 sm:p-6 md:pb-6">
       {/* Header */}
-      <div className="flex items-start justify-between">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex min-w-0 items-center gap-3">
           <div className="rounded-xl bg-surface/80 p-2 text-purple-400 shadow-[0_10px_24px_rgba(0,0,0,0.16)]">
             <RepeatIcon size={22} />
           </div>
@@ -349,7 +359,7 @@ export default function RecurringPage() {
         </div>
         <button
           onClick={() => setModalOpen(true)}
-          className="flex items-center gap-2 bg-purple-500 hover:bg-purple-600 text-white font-bold px-4 py-2 rounded-xl text-sm transition-colors"
+          className="flex items-center justify-center gap-2 rounded-xl bg-purple-500 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-purple-600 sm:shrink-0"
         >
           <PlusIcon size={16} />
           Adicionar
@@ -376,13 +386,13 @@ export default function RecurringPage() {
 
       <section className="flex flex-col gap-4">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <div>
+          <div className="min-w-0">
             <h2 className="text-text-primary font-semibold">Contas do mês</h2>
             <p className="text-xs text-text-muted">
               {paidCount} de {bills.length} contas pagas este mês
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {BILL_FILTERS.map((f) => (
               <button
                 key={f.value}

@@ -1,7 +1,5 @@
-import React from 'react'
+import PaymentsPage from "@/features/payments/components/PaymentsPage";
 
-export default function peixe() {
-  return (
-    <div>peixe</div>
-  )
+export default function Payments() {
+  return <PaymentsPage />;
 }

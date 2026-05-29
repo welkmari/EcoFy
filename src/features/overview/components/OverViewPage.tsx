@@ -44,9 +44,25 @@ export default function OverViewPage() {
   const metrics = data?.metrics ?? {
     income: 0,
     investments: 0,
+    investmentsTarget: 0,
+    investmentsRemaining: 0,
     expenses: 0,
     monthlyBills: 0,
   };
+  const investmentsProgress =
+    metrics.investmentsTarget > 0
+      ? Math.min((metrics.investments / metrics.investmentsTarget) * 100, 100)
+      : 0;
+  const investmentsChange =
+    metrics.investmentsTarget > 0
+      ? `${investmentsProgress.toFixed(0)}%`
+      : "Sem meta";
+  const investmentsHint =
+    metrics.investmentsTarget > 0
+      ? metrics.investmentsRemaining > 0
+        ? `faltam ${formatMoney(metrics.investmentsRemaining)}`
+        : "metas concluídas"
+      : "crie um cofrinho";
 
   return (
     <div className="flex min-h-full flex-col gap-4 px-4 pb-5 pt-1 sm:px-5">
@@ -106,9 +122,9 @@ export default function OverViewPage() {
         <MetricCard
           variant="investimentos"
           value={formatMoney(metrics.investments)}
-          change="Cofrinhos"
-          percentage="guardado"
-          isUp={metrics.investments >= 0}
+          change={investmentsChange}
+          percentage={investmentsHint}
+          isUp={metrics.investmentsTarget === 0 || metrics.investmentsRemaining === 0 || metrics.investments > 0}
         />
         <MetricCard
           variant="saidas"

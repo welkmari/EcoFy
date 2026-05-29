@@ -2,11 +2,24 @@
 
 import {
   ArrowCounterClockwiseIcon,
+  BookOpenIcon,
+  CarIcon,
   CheckCircleIcon,
   ClockIcon,
+  CreditCardIcon,
+  DeviceMobileIcon,
+  ForkKnifeIcon,
+  GraduationCapIcon,
+  HeartbeatIcon,
+  HouseIcon,
+  LightningIcon,
   PencilSimpleIcon,
+  PillIcon,
+  ReceiptIcon,
+  ShoppingCartIcon,
   TrashIcon,
   WarningCircleIcon,
+  WifiHighIcon,
 } from "@phosphor-icons/react";
 import { cn } from "@/lib/cn";
 import type { BillStatus, FixedBill } from "../types";
@@ -60,6 +73,114 @@ const RECURRENCE_LABEL: Record<string, string> = {
   annual: "Anual",
   weekly: "Semanal",
 };
+
+function getBillVisual(bill: FixedBill) {
+  const text = `${bill.name} ${bill.category}`.toLowerCase();
+
+  if (text.includes("remédio") || text.includes("remedio") || text.includes("farm")) {
+    return {
+      icon: PillIcon,
+      bg: "bg-emerald-400/[0.08]",
+      text: "text-emerald-400",
+    };
+  }
+  if (
+    text.includes("faculdade") ||
+    text.includes("educ") ||
+    text.includes("curso") ||
+    text.includes("escola")
+  ) {
+    return {
+      icon: GraduationCapIcon,
+      bg: "bg-purple-400/[0.10]",
+      text: "text-purple-300",
+    };
+  }
+  if (
+    text.includes("operadora") ||
+    text.includes("telefone") ||
+    text.includes("celular") ||
+    text.includes("claro") ||
+    text.includes("vivo") ||
+    text.includes("tim")
+  ) {
+    return {
+      icon: DeviceMobileIcon,
+      bg: "bg-cyan-400/[0.10]",
+      text: "text-cyan-300",
+    };
+  }
+  if (text.includes("internet") || text.includes("wifi")) {
+    return {
+      icon: WifiHighIcon,
+      bg: "bg-cyan-400/[0.10]",
+      text: "text-cyan-300",
+    };
+  }
+  if (text.includes("aluguel") || text.includes("condomínio") || text.includes("casa")) {
+    return {
+      icon: HouseIcon,
+      bg: "bg-yellow-500/[0.10]",
+      text: "text-yellow-500",
+    };
+  }
+  if (text.includes("energia") || text.includes("luz")) {
+    return {
+      icon: LightningIcon,
+      bg: "bg-yellow-500/[0.10]",
+      text: "text-yellow-500",
+    };
+  }
+  if (text.includes("mercado") || text.includes("compra")) {
+    return {
+      icon: ShoppingCartIcon,
+      bg: "bg-emerald-400/[0.08]",
+      text: "text-emerald-400",
+    };
+  }
+  if (text.includes("aliment") || text.includes("restaurante")) {
+    return {
+      icon: ForkKnifeIcon,
+      bg: "bg-red-400/[0.08]",
+      text: "text-red-300",
+    };
+  }
+  if (text.includes("transporte") || text.includes("carro") || text.includes("uber")) {
+    return {
+      icon: CarIcon,
+      bg: "bg-purple-400/[0.10]",
+      text: "text-purple-300",
+    };
+  }
+  if (text.includes("cartão") || text.includes("cartao") || text.includes("fatura")) {
+    return {
+      icon: CreditCardIcon,
+      bg: "bg-purple-400/[0.10]",
+      text: "text-purple-300",
+    };
+  }
+  if (text.includes("saúde") || text.includes("saude") || text.includes("médico")) {
+    return {
+      icon: HeartbeatIcon,
+      bg: "bg-emerald-400/[0.08]",
+      text: "text-emerald-400",
+    };
+  }
+  if (text.includes("livro") || text.includes("assinatura")) {
+    return {
+      icon: BookOpenIcon,
+      bg: "bg-cyan-400/[0.10]",
+      text: "text-cyan-300",
+    };
+  }
+
+  return {
+    icon: ReceiptIcon,
+    bg: "bg-surface",
+    text: "text-text-secondary",
+  };
+}
+
 
 export default function BillsTable({
   bills,
@@ -147,7 +268,8 @@ function BillTableRow({
   isUpdating: boolean;
 }) {
   const config = STATUS_CONFIG[bill.status];
-  const Icon = config.icon;
+  const visual = getBillVisual(bill);
+  const Icon = visual.icon;
 
   return (
     <tr
@@ -158,7 +280,7 @@ function BillTableRow({
     >
       <td className="px-4 py-3">
         <div className="flex items-center gap-3">
-          <span className={cn("grid h-9 w-9 place-items-center rounded-xl", config.bg, config.text)}>
+          <span className={cn("grid h-9 w-9 place-items-center rounded-xl", visual.bg, visual.text)}>
             <Icon size={18} weight="fill" />
           </span>
           <span className="font-bold text-text-primary">{bill.name}</span>
@@ -205,13 +327,14 @@ function BillListItem({
   isUpdating: boolean;
 }) {
   const config = STATUS_CONFIG[bill.status];
-  const Icon = config.icon;
+  const visual = getBillVisual(bill);
+  const Icon = visual.icon;
 
   return (
     <div className={cn("flex flex-col gap-3 px-4 py-3", config.row)}>
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
-          <span className={cn("grid h-10 w-10 shrink-0 place-items-center rounded-xl", config.bg, config.text)}>
+          <span className={cn("grid h-10 w-10 shrink-0 place-items-center rounded-xl", visual.bg, visual.text)}>
             <Icon size={19} weight="fill" />
           </span>
           <div className="min-w-0">
@@ -267,7 +390,7 @@ function RowActions({
           className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-400/[0.08] px-3 py-1.5 text-xs font-bold text-emerald-400 transition-colors hover:bg-emerald-400/[0.12]"
         >
           <ArrowCounterClockwiseIcon size={14} />
-          Desfazer
+          Marcar pendente
         </button>
       ) : (
         <button
@@ -277,7 +400,7 @@ function RowActions({
           className="inline-flex items-center gap-1.5 rounded-xl bg-base/45 px-3 py-1.5 text-xs font-bold text-text-primary transition-colors hover:bg-base/70 disabled:cursor-not-allowed disabled:opacity-60"
         >
           <CheckCircleIcon size={14} />
-          {isUpdating ? "Confirmando..." : "Confirmar"}
+          {isUpdating ? "Confirmando..." : "Marcar pago"}
         </button>
       )}
       <button

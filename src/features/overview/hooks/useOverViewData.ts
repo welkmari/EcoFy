@@ -6,6 +6,8 @@ export type OverviewData = {
   metrics: {
     income: number;
     investments: number;
+    investmentsTarget: number;
+    investmentsRemaining: number;
     expenses: number;
     monthlyBills: number;
   };

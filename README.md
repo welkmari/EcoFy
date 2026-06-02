@@ -1,36 +1,65 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Ecofy
 
-## Getting Started
+Plataforma de controle financeiro pessoal — entradas, saídas, contas fixas e metas em um só lugar.
 
-First, run the development server:
+## Stack
+
+- [Next.js](https://nextjs.org) 15 (App Router)
+- [TypeScript](https://www.typescriptlang.org)
+- [Tailwind CSS](https://tailwindcss.com)
+- [Supabase](https://supabase.com) — auth e banco de dados
+- [Drizzle ORM](https://orm.drizzle.team)
+- [React Query](https://tanstack.com/query)
+- [Zod](https://zod.dev)
+
+## Pré-requisitos
+
+- Node.js 18+
+- Uma conta e projeto no [Supabase](https://supabase.com)
+
+## Configuração
+
+1. Clone o repositório
+
+```bash
+git clone https://github.com/welkmari/EcoFy.git
+cd EcoFy
+```
+
+2. Instale as dependências
+
+```bash
+npm install
+```
+
+3. Configure as variáveis de ambiente
+
+```bash
+cp .env.example .env.local
+```
+
+Preencha `.env.local` com os valores do seu projeto Supabase:
+
+| Variável | Onde encontrar |
+|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase → Project Settings → API → Project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase → Project Settings → API → anon public |
+| `DATABASE_URL` | Supabase → Project Settings → Database → Connection string |
+
+4. Inicie o servidor de desenvolvimento
 
 ```bash
 npm run dev
-# or.
-yarn dev
-# or.
-pnpm dev
-# or.
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Acesse [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Variáveis de ambiente
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Veja `.env.example` para a lista completa. Nunca commite o `.env.local`.
 
-## Learn More
+## Contribuindo
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Crie uma branch a partir de `main`
+2. Faça suas alterações
+3. Abra um Pull Request descrevendo o que mudou e por quê

@@ -58,8 +58,31 @@ Acesse [http://localhost:3000](http://localhost:3000).
 
 Veja `.env.example` para a lista completa. Nunca commite o `.env.local`.
 
-## Contribuindo
+## Branches
 
-1. Crie uma branch a partir de `main`
-2. Faça suas alterações
-3. Abra um Pull Request descrevendo o que mudou e por quê
+| Branch | Propósito |
+|---|---|
+| `main` | Base de desenvolvimento — todo trabalho parte daqui |
+| `hml` | Homologação — validação antes de ir para produção |
+| `prd` | Produção — protegida, merge somente via PR aprovado |
+
+## Fluxo de trabalho
+
+```
+feature/minha-feature → main → hml → prd
+```
+
+1. Crie sua branch a partir de `main`
+
+```bash
+git checkout main && git pull
+git checkout -b feature/nome-da-feature
+```
+
+2. Desenvolva e commite — o Husky roda ESLint automaticamente antes de cada commit e bloqueia `any` explícito
+
+3. Abra um Pull Request para `main` descrevendo o que mudou e por quê
+
+4. Após aprovação e merge em `main`, abra PR de `main → hml` para validação
+
+5. Validado em homologação, abra PR de `hml → prd` para produção
